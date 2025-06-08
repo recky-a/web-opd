@@ -16,6 +16,7 @@
 # next.js
 /.next/
 /out/
+/dist/
 
 # production
 /build
@@ -40,8 +41,16 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
-# IDE
-.vscode
+# VSCode
+.vscode/
 
-# local
+# Local
 todo.md
+.DS_Store
+
+# Editor config
+.idea/
+*.swp
+
+# Mac/Linux
+Thumbs.db
