@@ -1,36 +1,139 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌐 Website Dinas Kabupaten Bangka
 
-## Getting Started
+Repositori ini adalah proyek pengembangan **website resmi untuk Organisasi Perangkat Daerah (OPD)** di lingkungan Pemerintah Kabupaten Bangka. Proyek ini bertujuan menyediakan **media informasi digital yang modern, responsif, dan ramah SEO**, sehingga masyarakat dapat dengan mudah mengakses informasi yang tersedia.
 
-First, run the development server:
+Website dibangun menggunakan teknologi modern seperti **Next.js (App Router) dan TypeScript**, sehingga:
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+- 💡 **Mudah dikembangkan dan dirawat** oleh tim teknis.
+- ⚙️ **Terintegrasi** dengan server milik Pemkab Bangka.
+- 🔍 **Ramah mesin pencari (SEO-friendly)**.
+- ⚡ **Responsif dan cepat diakses** dari berbagai perangkat.
+
+---
+
+## 🚀 Teknologi yang Digunakan
+
+- [Next.js 14+ (App Router)](https://nextjs.org/)
+- [React](https://react.dev/)
+- [TypeScript](https://www.typescriptlang.org/)
+- [Tailwind CSS](https://tailwindcss.com/)
+- [ShadCN/UI](https://ui.shadcn.com/) – komponen UI modern berbasis Radix
+- [Zod](https://zod.dev/) – validasi schema untuk form dan API
+- [Lucide Icons](https://lucide.dev/) – ikon modern berbasis SVG
+- [Prettier + ESLint] – format & linter kode
+- [Vercel](https://vercel.com/) _(opsional)_ – platform hosting modern
+
+---
+
+## 📁 Struktur Proyek
+
+```text
+src/
+├── app/
+│   ├── (www)/                     # Halaman publik untuk pengunjung
+│   │   ├── page.tsx               # Beranda (Homepage)
+│   │   ├── layout.tsx             # Layout umum (Header, Footer)
+│   │   ├── berita/                # Daftar & detail berita
+│   │   │   ├── page.tsx
+│   │   │   └── [slug]/page.tsx
+│   │   ├── pengumuman/page.tsx    # Halaman pengumuman
+│   │   ├── galeri/page.tsx        # Halaman galeri
+│   │   ├── layanan/page.tsx       # Halaman layanan
+│   │   └── profil/                # Profil dinas (sub-halaman)
+│   │       ├── visi-dan-misi/page.tsx
+│   │       ├── sambutan-kepala-dinas/page.tsx
+│   │       ├── struktur-organisasi/page.tsx
+│   │       └── tugas-pokok-dan-fungsi/page.tsx
+│   │
+│   ├── (auth)/                    # Halaman otentikasi
+│   │   ├── layout.tsx
+│   │   └── login/page.tsx
+│   │
+│   └── administrasi/              # Halaman dashboard admin
+│       ├── layout.tsx             # Layout admin (Sidebar, Topbar)
+│       ├── pengaturan/            # Konfigurasi data OPD
+│       └── manajemen-konten/      # Pengelolaan berita, galeri, dst.
+│
+├── components/
+│   ├── ui/                        # Komponen dasar dari ShadCN/UI
+│   ├── layouts/                   # Header, Footer, Sidebar
+│   └── shared/                    # Komponen lintas halaman
+│
+├── lib/                           # Fungsi utilitas (db, auth, dsb)
+├── types/                         # Definisi tipe global
+├── styles/                        # CSS global
+└── public/                        # Aset publik (favicon, gambar, dsb)
+
+File penting lainnya:
+- `next.config.ts` – Konfigurasi Next.js
+- `postcss.config.mjs` – Konfigurasi PostCSS
+- `eslint.config.mjs` – Konfigurasi ESLint
+- `tsconfig.json` – Konfigurasi TypeScript
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+---
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## 📦 Cara Menjalankan Proyek
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 1. Clone repositori
+git clone https://github.com/namauser/nama-repo.git
+cd nama-repo
 
-## Learn More
+# 2. Install dependensi
+npm install
 
-To learn more about Next.js, take a look at the following resources:
+# 3. Jalankan development server
+npm run dev
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+# 4. Buka di browser
+http://localhost:3000
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
+## 🚧 Status Proyek
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> Status: 🔧 **Tahap awal pengembangan**
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+✅ Fitur yang sudah tersedia:
+
+- Halaman publik (beranda, profil, berita, layanan, galeri, pengumuman)
+- Halaman login
+- Layout dasar dashboard admin
+
+🛠️ Fitur yang sedang dikembangkan:
+
+- Manajemen konten (berita, galeri, layanan, pengumuman)
+- Pengaturan informasi OPD
+- Autentikasi & otorisasi admin
+- Modularisasi komponen agar bisa digunakan ulang
+
+📋 Fitur yang direncanakan:
+
+- Multi-level user role (admin super, penulis konten)
+- Preview konten sebelum publikasi
+- Dashboard statistik pengunjung (integrasi Google Analytics)
+- Pencarian konten (berita, pengumuman, layanan)
+- Galeri video & dokumentasi publik
+
+---
+
+## 📌 Catatan Penting
+
+- Proyek ini **bukan multi-tenant**: satu repositori hanya untuk satu OPD.
+- File `todo.md` **tidak disertakan dalam repositori** karena hanya digunakan untuk catatan lokal (`.gitignore`).
+- Semua komponen dan halaman didesain **semantik, responsif, dan mudah diakses** (accessibility-aware).
+- Layout admin dan publik dipisahkan untuk menjaga keamanan dan struktur yang rapi.
+
+---
+
+## 👥 Kontributor
+
+Proyek ini dikelola dan dikembangkan oleh tim internal dari **Dinas Komunikasi dan Informatika Kabupaten Bangka**.
+
+---
+
+## 📄 Lisensi
+
+Proyek ini dirilis di bawah lisensi **[MIT License](./LICENSE)** – Anda bebas menggunakan dan memodifikasi dengan tetap menyertakan atribusi kepada pengembang asli.
