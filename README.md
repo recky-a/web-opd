@@ -13,7 +13,7 @@ Website dibangun menggunakan teknologi modern seperti **Next.js (App Router) dan
 
 ## 🚀 Teknologi yang Digunakan
 
-- [Next.js 14+ (App Router)](https://nextjs.org/)
+- [Next.js 15+ (App Router)](https://nextjs.org/)
 - [React](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
 - [Tailwind CSS](https://tailwindcss.com/)
