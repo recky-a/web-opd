@@ -2,40 +2,51 @@
   "name": "web-opd",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
+  "packageManager": "pnpm@9.15.2",
+  "engines": {
+    "node": ">=22.0.0",
+    "pnpm": ">=9.0.0"
+  },
   "lint-staged": {
     "**/*.{ts,tsx,js,jsx}": [
-      "eslint --fix",
+      "eslint --fix --max-warnings=0",
       "prettier --write"
     ],
-    "**/*.{json,md,css}": [
+    "**/*.{json,md,css,yml,yaml}": [
       "prettier --write"
     ]
   },
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
     "prepare": "husky",
-    "lint": "eslint .",
-    "format": "prettier --write ."
+    "lint": "next lint --max-warnings=0",
+    "lint:fix": "next lint --fix --max-warnings=0",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "type-check": "tsc --noEmit",
+    "preview": "next build && next start",
+    "clean": "rm -rf .next out dist"
   },
   "dependencies": {
     "next": "15.3.3",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0"
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
   },
   "devDependencies": {
     "@commitlint/config-conventional": "^19.8.1",
-    "@eslint/eslintrc": "^3",
+    "@commitlint/types": "^19.8.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
     "@semantic-release/github": "^11.0.3",
-    "@tailwindcss/postcss": "^4",
-    "@types/node": "^20",
-    "@types/react": "^19",
-    "@types/react-dom": "^19",
+    "@tailwindcss/postcss": "^4.1.8",
+    "@types/node": "^22.9.4",
+    "@types/react": "^19.1.6",
+    "@types/react-dom": "^19.1.6",
     "commitlint": "^19.8.1",
-    "eslint": "^9.28.0",
+    "eslint": "^9.17.0",
     "eslint-config-next": "15.3.3",
     "eslint-config-prettier": "^10.1.5",
     "husky": "^9.1.7",
@@ -43,7 +54,7 @@
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
     "semantic-release": "^24.2.5",
-    "tailwindcss": "^4",
-    "typescript": "^5"
+    "tailwindcss": "^4.1.8",
+    "typescript": "^5.7.3"
   }
 }

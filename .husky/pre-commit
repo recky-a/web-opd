@@ -1,1 +1,29 @@
+#!/usr/bin/env sh
+
+# Exit on any error
+set -e
+
+# Check if pnpm is available
+if ! command -v pnpm >/dev/null 2>&1; then
+echo "❌ pnpm is not installed. Please install pnpm first."
+exit 1
+fi
+
+echo "🔧 Running pre-commit checks..."
+
+# Check for merge conflicts (exclude .husky directory to avoid false positives)
+if grep -r "<<<<<<< HEAD" . --exclude-dir=node_modules --exclude-dir=.git --exclude-dir=.husky;
+then
+echo "❌ Merge conflict markers found. Please resolve conflicts before committing."
+exit 1
+fi
+
+# Run type checking
+echo "🔍 Running type check..."
+pnpm type-check
+
+# Run lint-staged
+echo "🧹 Running lint-staged..."
 pnpm lint-staged
+
+echo "✅ Pre-commit checks passed!"

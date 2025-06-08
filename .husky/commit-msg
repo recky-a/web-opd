@@ -1,1 +1,16 @@
-npx --no -- commitlint --edit "$1"
+#!/usr/bin/env sh
+
+# Exit on any error
+set -e
+
+# Check if commitlint is available
+if ! command -v pnpm >/dev/null 2>&1; then
+  echo "❌ pnpm is not installed. Please install pnpm first."
+  exit 1
+fi
+
+# Run commitlint
+echo "🔍 Validating commit message..."
+pnpm dlx commitlint --edit "$1"
+
+echo "✅ Commit message validation passed!"

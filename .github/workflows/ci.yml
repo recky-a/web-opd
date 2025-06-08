@@ -2,13 +2,79 @@ name: CI Pipeline
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
+    types: [opened, synchronize, reopened, ready_for_review]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: read
+  checks: write
+  security-events: write
 
 jobs:
-  build-and-test:
+  changes:
     runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+      config: ${{ steps.changes.outputs.config }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Detect Changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'app/**'
+              - 'pages/**'
+              - 'components/**'
+              - '**/*.{ts,tsx,js,jsx}'
+            config:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - '*.config.*'
+              - '.eslintrc.*'
+              - 'tsconfig.json'
+
+  security:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+  quality:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.config == 'true'
+    strategy:
+      matrix:
+        node-version: [22.x, 23.x]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -16,7 +82,53 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.15.2
+
+      - name: Setup Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Type Check
+        run: pnpm type-check
+
+      - name: Format Check
+        run: pnpm format:check
+
+      - name: Run Linter
+        run: pnpm lint
+
+      - name: Run Build
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Cache Build Output
+        uses: actions/cache@v4
+        with:
+          path: |
+            .next/cache
+            .next/static
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-${{ hashFiles('**/*.js', '**/*.jsx', '**/*.ts', '**/*.tsx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('**/pnpm-lock.yaml') }}-
+
+  performance:
+    runs-on: ubuntu-latest
+    needs: [changes, quality]
+    if: needs.changes.outputs.code == 'true' && github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -25,12 +137,43 @@ jobs:
           cache: 'pnpm'
 
       - name: Install Dependencies
-        run: pnpm install
+        run: pnpm install --frozen-lockfile
 
-      - name: Run Linter
-        # Menjalankan linter yang terintegrasi dengan Next.js
-        run: pnpm lint
+      - name: Build for Analysis
+        run: pnpm build
+        env:
+          ANALYZE: true
 
-      - name: Run Build
-        # Menjalankan build produksi Next.js
+      - name: Bundle Analysis
+        run: |
+          if [ -f ".next/analyze/client.html" ]; then
+            echo "Bundle analysis complete. Check the artifacts."
+          fi
+
+  compatibility:
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true'
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Test
         run: pnpm build

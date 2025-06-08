@@ -1,0 +1,15 @@
+# Global owners
+* @recky-a
+
+# Package.json and lock files
+package.json @recky-a
+pnpm-lock.yaml @recky-a
+
+# CI/CD files
+.github/ @recky-a
+Dockerfile @recky-a
+
+# Configuration files
+*.config.* @recky-a
+tsconfig.json @recky-a
+

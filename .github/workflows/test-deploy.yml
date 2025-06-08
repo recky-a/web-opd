@@ -3,13 +3,69 @@ name: Test Deploy on Develop
 on:
   push:
     branches:
-      - develop # Workflow ini hanya berjalan di branch develop
+      - develop
+  pull_request:
+    branches:
+      - develop
+    types: [opened, synchronize, reopened]
+
+concurrency:
+  group: test-deploy-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pull-requests: write
+  checks: write
+  security-events: write
+
+env:
+  NODE_ENV: production
+  PNPM_VERSION: 9.15.2
+  NODE_VERSION: 22.x
 
 jobs:
-  # Job 1: Memvalidasi artefak build untuk cPanel & Docker
+  changes:
+    runs-on: ubuntu-latest
+    outputs:
+      code: ${{ steps.changes.outputs.code }}
+      docker: ${{ steps.changes.outputs.docker }}
+      config: ${{ steps.changes.outputs.config }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Detect Changes
+        uses: dorny/paths-filter@v3
+        id: changes
+        with:
+          filters: |
+            code:
+              - 'src/**'
+              - 'app/**'
+              - 'pages/**'
+              - 'components/**'
+              - '**/*.{ts,tsx,js,jsx}'
+              - '!**/*.test.{ts,tsx,js,jsx}'
+              - '!**/*.spec.{ts,tsx,js,jsx}'
+            docker:
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'docker-compose.*'
+            config:
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - '*.config.*'
+              - 'tsconfig.json'
+
   validate_build_artifact:
     name: 🧪 Validate Build Artifact
     runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.config == 'true'
+    strategy:
+      matrix:
+        node-version: [22.x, 23.x]
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -17,28 +73,153 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: ${{ env.PNPM_VERSION }}
 
-      - name: Setup Node.js
+      - name: Setup Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v4
         with:
-          node-version: '22.x'
+          node-version: ${{ matrix.node-version }}
           cache: 'pnpm'
 
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
-      - name: Run Production Build
-        # Langkah ini mensimulasikan persiapan untuk deployment cPanel
-        # dan juga merupakan prasyarat untuk build Docker.
-        run: pnpm build
+      - name: Type Check
+        run: pnpm type-check
 
-  # Job 2: Memvalidasi bahwa Docker image bisa dibuat
+      - name: Lint Check
+        run: pnpm lint
+
+      - name: Run Tests (if exists)
+        run: |
+          if pnpm run test --help &> /dev/null; then
+            pnpm test
+          else
+            echo "No test script found, skipping tests"
+          fi
+        continue-on-error: false
+
+      - name: Run Production Build
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Validate Build Output
+        run: |
+          if [ ! -d ".next" ]; then
+            echo "Build failed: .next directory not found"
+            exit 1
+          fi
+
+          if [ ! -f ".next/BUILD_ID" ]; then
+            echo "Build failed: BUILD_ID not found"
+            exit 1
+          fi
+
+          # Check for critical build files
+          if [ ! -d ".next/static" ]; then
+            echo "Warning: Static files directory not found"
+          fi
+
+          echo "Build validation successful"
+          echo "Build ID: $(cat .next/BUILD_ID)"
+
+      - name: Test Production Server
+        run: |
+          timeout 60s pnpm start &
+          SERVER_PID=$!
+
+          # Wait for server to start with timeout
+          for i in {1..30}; do
+            if curl -f -s http://localhost:3000/ > /dev/null 2>&1; then
+              echo "Server started successfully"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Server failed to start within timeout"
+              kill $SERVER_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Test server health
+          if curl -f -s http://localhost:3000/ > /dev/null; then
+            echo "Production server test passed"
+          else
+            echo "Production server test failed"
+            kill $SERVER_PID 2>/dev/null || true
+            exit 1
+          fi
+
+          kill $SERVER_PID 2>/dev/null || true
+
+      - name: Bundle Size Analysis
+        run: |
+          # Check if bundle analyzer is configured
+          if grep -q "@next/bundle-analyzer" package.json; then
+            echo "Running bundle analysis..."
+            ANALYZE=true pnpm build || echo "Bundle analysis completed with warnings"
+          else
+            echo "Bundle analyzer not configured, skipping analysis"
+          fi
+
+  security_scan:
+    name: 🔒 Security Scan
+    runs-on: ubuntu-latest
+    needs: changes
+    if: needs.changes.outputs.code == 'true' || needs.changes.outputs.config == 'true'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Setup pnpm for audit
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Security Audit
+        run: |
+          echo "Running security audit..."
+          pnpm audit --audit-level moderate --json > audit-results.json || {
+            echo "Security vulnerabilities found:"
+            cat audit-results.json | jq -r '.advisories | to_entries[] | "\(.value.title) - \(.value.severity)"' || echo "Failed to parse audit results"
+            echo "Please review and fix security vulnerabilities."
+            exit 1
+          }
+          echo "Security audit passed"
+
   validate_docker_build:
     name: 🐳 Validate Docker Image Build
     runs-on: ubuntu-latest
-    # Job ini hanya berjalan jika job sebelumnya sukses
-    needs: validate_build_artifact
+    needs: [changes, validate_build_artifact]
+    if: needs.changes.outputs.docker == 'true' || needs.changes.outputs.code == 'true'
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -47,11 +228,226 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker Image
+        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
           file: ./Dockerfile
-          # PENTING: push: false berarti image hanya di-build, tidak di-push
           push: false
-          # Kita load image untuk memastikan build selesai dengan benar
           load: true
+          tags: test-image:${{ github.sha }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          build-args: |
+            NODE_ENV=production
+
+      - name: Test Docker Image
+        run: |
+          # Start container in background with health check
+          docker run -d --name test-container -p 3000:3000 \
+            --health-cmd="curl -f http://localhost:3000/ || exit 1" \
+            --health-interval=10s \
+            --health-timeout=5s \
+            --health-retries=3 \
+            test-image:${{ github.sha }}
+
+          # Wait for container to be healthy
+          for i in {1..30}; do
+            health_status=$(docker inspect --format='{{.State.Health.Status}}' test-container 2>/dev/null || echo "unhealthy")
+            if [ "$health_status" = "healthy" ]; then
+              echo "Container is healthy"
+              break
+            elif [ "$health_status" = "unhealthy" ]; then
+              echo "Container health check failed"
+              docker logs test-container
+              docker stop test-container
+              docker rm test-container
+              exit 1
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Container failed to become healthy within timeout"
+              docker logs test-container
+              docker stop test-container
+              docker rm test-container
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Additional application test
+          if curl -f -s http://localhost:3000/ > /dev/null; then
+            echo "Docker container test passed"
+          else
+            echo "Docker container test failed"
+            docker logs test-container
+            docker stop test-container
+            docker rm test-container
+            exit 1
+          fi
+
+          # Clean up
+          docker stop test-container
+          docker rm test-container
+
+      - name: Scan Docker Image for Vulnerabilities
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'test-image:${{ github.sha }}'
+          format: 'sarif'
+          output: 'trivy-docker-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      - name: Upload Docker scan results
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-docker-results.sarif'
+
+  performance_test:
+    name: ⚡ Performance Test
+    runs-on: ubuntu-latest
+    needs: [validate_build_artifact]
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: ${{ env.PNPM_VERSION }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm build
+
+      - name: Install Lighthouse CI
+        run: npm install -g @lhci/cli@0.12.0
+
+      - name: Run Lighthouse CI
+        run: |
+          timeout 120s pnpm start &
+          SERVER_PID=$!
+
+          # Wait for server to start
+          for i in {1..30}; do
+            if curl -f -s http://localhost:3000/ > /dev/null 2>&1; then
+              echo "Server ready for performance testing"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "Server failed to start for performance testing"
+              kill $SERVER_PID 2>/dev/null || true
+              exit 1
+            fi
+            sleep 2
+          done
+
+          # Run Lighthouse with custom config
+          lhci autorun \
+            --upload.target=temporary-public-storage \
+            --collect.numberOfRuns=3 \
+            --collect.url=http://localhost:3000 \
+            || {
+              echo "Lighthouse test completed with warnings"
+            }
+
+          kill $SERVER_PID 2>/dev/null || true
+
+  summary:
+    name: 📋 Test Summary
+    runs-on: ubuntu-latest
+    needs:
+      [
+        changes,
+        validate_build_artifact,
+        security_scan,
+        validate_docker_build,
+        performance_test,
+      ]
+    if: always()
+    steps:
+      - name: Generate Summary
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const results = {
+              build: '${{ needs.validate_build_artifact.result }}',
+              security: '${{ needs.security_scan.result }}',
+              docker: '${{ needs.validate_docker_build.result }}',
+              performance: '${{ needs.performance_test.result }}'
+            };
+
+            const getStatusIcon = (status) => {
+              switch(status) {
+                case 'success': return '✅';
+                case 'failure': return '❌';
+                case 'cancelled': return '⏹️';
+                case 'skipped': return '⏭️';
+                default: return '❓';
+              }
+            };
+
+            const getStatusText = (status) => {
+              switch(status) {
+                case 'success': return 'Passed';
+                case 'failure': return 'Failed';
+                case 'cancelled': return 'Cancelled';
+                case 'skipped': return 'Skipped';
+                default: return 'Unknown';
+              }
+            };
+
+            const passed = Object.values(results).filter(r => r === 'success').length;
+            const failed = Object.values(results).filter(r => r === 'failure').length;
+            const total = Object.values(results).filter(r => r !== 'skipped').length;
+
+            const overallStatus = failed > 0 ? '❌ Some tests failed' : passed === total ? '✅ All tests passed' : '⚠️ Tests completed with warnings';
+
+            const summary = `## 🚀 Deploy Test Summary
+
+            **Overall Status**: ${overallStatus}
+            **Results**: ${passed} passed, ${failed} failed, ${total - passed - failed} other
+
+            ### Detailed Results:
+            | Test | Status | Result |
+            |------|--------|---------|
+            | 🧪 Build Validation | ${getStatusIcon(results.build)} | ${getStatusText(results.build)} |
+            | 🔒 Security Scan | ${getStatusIcon(results.security)} | ${getStatusText(results.security)} |
+            | 🐳 Docker Build | ${getStatusIcon(results.docker)} | ${getStatusText(results.docker)} |
+            | ⚡ Performance Test | ${getStatusIcon(results.performance)} | ${getStatusText(results.performance)} |
+
+            ${failed > 0 ? '⚠️ **Action Required**: Please check the failed tests and fix any issues before deploying.' : ''}
+            `;
+
+            // Post comment on PR
+            if (context.eventName === 'pull_request') {
+              try {
+                await github.rest.issues.createComment({
+                  issue_number: context.issue.number,
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  body: summary
+                });
+              } catch (error) {
+                console.log('Failed to post PR comment:', error.message);
+              }
+            }
+
+            // Add to job summary
+            await core.summary
+              .addRaw(summary)
+              .write();
+
+            // Set output for other workflows
+            core.setOutput('overall-status', failed > 0 ? 'failure' : 'success');
+            core.setOutput('passed-count', passed);
+            core.setOutput('failed-count', failed);

@@ -4,28 +4,48 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: 'Release type'
+        required: true
+        default: 'auto'
+        type: choice
+        options:
+          - auto
+          - patch
+          - minor
+          - major
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+  id-token: write
+  packages: write
+  attestations: write
 
 jobs:
-  release:
+  validate:
     runs-on: ubuntu-latest
-    # Workflow ini hanya berjalan jika CI sukses & bukan commit dari bot semantic-release
     if: github.ref == 'refs/heads/main' && !contains(github.event.head_commit.message, 'chore(release)')
-    permissions:
-      contents: write
-      issues: write
-      pull-requests: write
-      id-token: write
-
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 9.15.2
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -36,7 +56,90 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Validate Build
+        run: pnpm build
+
+      - name: Check Release Necessity
+        id: check
+        run: |
+          # Check if there are releasable changes
+          if pnpm dlx semantic-release --dry-run --no-ci | grep -q "The next release version is"; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+          fi
+
+  release:
+    runs-on: ubuntu-latest
+    needs: validate
+    if: needs.validate.outputs.should_release == 'true'
+    environment:
+      name: production
+      url: ${{ steps.release.outputs.release_url }}
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22.x'
+          cache: 'pnpm'
+
+      - name: Install Dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Build Application
+        run: pnpm build
+        env:
+          NODE_ENV: production
+
+      - name: Generate SBOM
+        uses: anchore/sbom-action@v0
+        with:
+          path: ./
+          format: spdx-json
+          output-file: sbom.spdx.json
+
       - name: Run Semantic Release
+        id: release
         run: pnpm dlx semantic-release
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Generate Attestation
+        if: steps.release.outputs.new_release_published == 'true'
+        uses: actions/attest-build-provenance@v1
+        with:
+          subject-path: |
+            .next/**
+            sbom.spdx.json
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: [validate, release]
+    if: always() && needs.validate.outputs.should_release == 'true'
+    steps:
+      - name: Notify Release Status
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const status = '${{ needs.release.result }}';
+            const message = status === 'success' 
+              ? '🎉 New release has been published successfully!'
+              : '❌ Release failed. Please check the logs.';
+
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: message
+            });

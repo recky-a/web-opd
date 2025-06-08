@@ -1,54 +1,32 @@
-# Stage 1: Instalasi Dependensi
-FROM node:22-alpine AS deps
+# 1. Install dependencies
+FROM node:22-slim AS deps
 WORKDIR /app
-
-# Instal pnpm
-RUN npm install -g pnpm
-
-# Salin file package management
 COPY package.json pnpm-lock.yaml ./
+RUN npm install -g pnpm@9
+RUN pnpm install --frozen-lockfile
 
-# Instal dependensi produksi saja
-RUN pnpm install --prod --frozen-lockfile
-
-# ---
-
-# Stage 2: Builder
-FROM node:22-alpine AS builder
+# 2. Build the application
+FROM node:22-slim AS builder
 WORKDIR /app
-
-# Salin dependensi dari stage sebelumnya
 COPY --from=deps /app/node_modules ./node_modules
-
-# Salin sisa kode sumber
 COPY . .
-
-# Jalankan build dengan output standalone
+RUN npm install -g pnpm@9
 RUN pnpm build
 
-# ---
-
-# Stage 3: Runner (Final Image)
-FROM node:22-alpine AS runner
+# 3. Production image
+FROM node:22-slim AS runner
 WORKDIR /app
 
-# Set environment ke produksi
 ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED 1
 
-# Buat user non-root untuk keamanan
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+COPY --from=builder /app/public ./public
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
 USER nextjs
 
-# Salin output standalone dari stage builder
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-
-# Salin folder public
-COPY --from=builder --chown=nextjs:nodejs /app/public ./public
-
-# Port yang diekspos oleh Next.js
 EXPOSE 3000
 ENV PORT 3000
 
-# Perintah untuk menjalankan aplikasi
 CMD ["node", "server.js"]
