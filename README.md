@@ -16,6 +16,7 @@ Website dibangun menggunakan teknologi modern seperti **Next.js (App Router) dan
 - [Next.js 15+ (App Router)](https://nextjs.org/)
 - [React](https://react.dev/)
 - [TypeScript](https://www.typescriptlang.org/)
+- [pnpm](https://pnpm.io/)
 - [Tailwind CSS](https://tailwindcss.com/)
 - [ShadCN/UI](https://ui.shadcn.com/) – komponen UI modern berbasis Radix
 - [Zod](https://zod.dev/) – validasi schema untuk form dan API
@@ -77,14 +78,14 @@ File penting lainnya:
 
 ```bash
 # 1. Clone repositori
-git clone https://github.com/namauser/nama-repo.git
-cd nama-repo
+git clone [https://github.com/recky-a/web-opd.git](https://github.com/recky-a/web-opd)
+cd web-opd
 
 # 2. Install dependensi
-npm install
+pnpm install
 
 # 3. Jalankan development server
-npm run dev
+pnpm dev
 
 # 4. Buka di browser
 http://localhost:3000

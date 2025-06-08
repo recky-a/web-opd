@@ -8,7 +8,7 @@ Semua perubahan signifikan pada proyek ini akan dicatat di sini.
 
 ✨ Rilis awal:
 
-- Struktur dasar proyek Next.js 14 (App Router)
+- Struktur dasar proyek Next.js 15 (App Router)
 - Halaman publik (Beranda, Profil, Layanan, Galeri, Pengumuman)
 - Halaman login
 - Layout dasar untuk admin
