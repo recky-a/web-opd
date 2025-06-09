@@ -1,0 +1,109 @@
+:root {
+  --radius: 0.625rem;
+
+  /* Light theme - Professional Indonesian Government Colors */
+  --background: oklch(0.98 0.005 85); /* Slightly less bright to reduce glare */
+  --foreground: oklch(0.13 0.025 270); /* Softer, less stark */
+  --card: oklch(0.97 0.009 85); /* A little warmer */
+  --card-foreground: oklch(
+    0.2 0.025 270
+  ); /* Slightly stronger for readability */
+  --popover: oklch(0.97 0.005 85);
+  --popover-foreground: oklch(0.13 0.025 270);
+
+  /* Primary: Deep Indonesian Blue */
+  --primary: oklch(0.38 0.12 240); /* A touch more saturation for vibrance */
+  --primary-foreground: oklch(0.98 0.01 85);
+
+  /* Secondary: Warm Gold/Brass */
+  --secondary: oklch(0.9 0.07 85); /* Slightly richer gold */
+  --secondary-foreground: oklch(0.27 0.03 270);
+
+  /* Muted: Soft Blue-Gray */
+  --muted: oklch(0.92 0.025 240);
+  --muted-foreground: oklch(0.5 0.05 270);
+
+  /* Accent: Indonesian Maroon/Red */
+  --accent: oklch(0.87 0.1 25);
+  --accent-foreground: oklch(0.25 0.04 270);
+
+  /* Destructive: Warm Red */
+  --destructive: oklch(0.6 0.25 25);
+  --destructive-foreground: oklch(0.98 0.01 85);
+
+  /* Borders and Inputs */
+  --border: oklch(
+    0.82 0.03 240
+  ); /* Slightly darker for better input/button borders */
+  --input: oklch(0.88 0.03 240);
+  --ring: oklch(0.38 0.13 240);
+
+  /* Charts - Indonesian-inspired palette */
+  --chart-1: oklch(0.38 0.13 240);
+  --chart-2: oklch(0.68 0.18 85);
+  --chart-3: oklch(0.58 0.22 25);
+  --chart-4: oklch(0.48 0.1 160);
+  --chart-5: oklch(0.68 0.13 300);
+
+  /* Sidebar */
+  --sidebar: oklch(0.95 0.015 240);
+  --sidebar-foreground: oklch(0.2 0.025 270);
+  --sidebar-primary: oklch(0.38 0.13 240);
+  --sidebar-primary-foreground: oklch(0.98 0.01 85);
+  --sidebar-accent: oklch(0.9 0.07 85);
+  --sidebar-accent-foreground: oklch(0.27 0.03 270);
+  --sidebar-border: oklch(0.82 0.03 240);
+  --sidebar-ring: oklch(0.38 0.13 240);
+}
+
+.dark {
+  /* Dark theme - Sophisticated night mode with Indonesian accents */
+  --background: oklch(0.1 0.03 270); /* Slightly lighter for less deep black */
+  --foreground: oklch(0.92 0.02 85); /* Softer off-white */
+  --card: oklch(0.15 0.03 270); /* A bit lighter for better contrast */
+  --card-foreground: oklch(0.9 0.02 85);
+  --popover: oklch(0.15 0.03 270);
+  --popover-foreground: oklch(0.92 0.02 85);
+
+  /* Primary: Bright Indonesian Blue */
+  --primary: oklch(0.7 0.18 240); /* More vivid for emphasis */
+  --primary-foreground: oklch(0.1 0.03 270);
+
+  /* Secondary: Rich Gold */
+  --secondary: oklch(0.22 0.05 270); /* Brighter gold */
+  --secondary-foreground: oklch(0.9 0.1 85);
+
+  /* Muted: Dark Blue-Gray */
+  --muted: oklch(0.2 0.04 270);
+  --muted-foreground: oklch(0.7 0.03 270);
+
+  /* Accent: Warm Indonesian Red */
+  --accent: oklch(0.28 0.07 25);
+  --accent-foreground: oklch(0.92 0.07 25);
+
+  /* Destructive: Bright Red */
+  --destructive: oklch(0.72 0.28 25);
+  --destructive-foreground: oklch(0.92 0.02 85);
+
+  /* Borders and Inputs */
+  --border: oklch(0.4 0.06 270); /* Brighter than before for visibility */
+  --input: oklch(0.36 0.05 270);
+  --ring: oklch(0.7 0.18 240);
+
+  /* Charts - Dark mode Indonesian palette */
+  --chart-1: oklch(0.7 0.18 240);
+  --chart-2: oklch(0.8 0.22 85);
+  --chart-3: oklch(0.72 0.28 25);
+  --chart-4: oklch(0.62 0.15 160);
+  --chart-5: oklch(0.75 0.18 300);
+
+  /* Sidebar */
+  --sidebar: oklch(0.12 0.03 270);
+  --sidebar-foreground: oklch(0.9 0.02 85);
+  --sidebar-primary: oklch(0.7 0.18 240);
+  --sidebar-primary-foreground: oklch(0.12 0.03 270);
+  --sidebar-accent: oklch(0.28 0.07 25);
+  --sidebar-accent-foreground: oklch(0.92 0.07 25);
+  --sidebar-border: oklch(0.4 0.06 270);
+  --sidebar-ring: oklch(0.7 0.18 240);
+}
