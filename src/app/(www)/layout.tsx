@@ -1,11 +1,11 @@
 import { ThemeProvider } from '@/components/theme-provider';
 import { generateMetadata } from '@/lib/metadata';
-import '@/styles/globals.css';
+
+import '@/styles/www-style.css';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Footer from './footer';
 import Header from './header';
-import './index.css';
 
 // Optimized font loading
 const inter = Inter({
@@ -25,8 +25,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="id" suppressHydrationWarning className={inter.variable}>
-      <body className="flex min-h-screen flex-col font-sans antialiased">
+    <html lang="id" suppressHydrationWarning className={` ${inter.variable}`}>
+      <body className={`flex min-h-[100dvh] flex-col font-sans antialiased`}>
         <ThemeProvider
           attribute="class"
           defaultTheme="light"
