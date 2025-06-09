@@ -50,7 +50,7 @@ src/
 │   │   ├── layout.tsx
 │   │   └── login/page.tsx
 │   │
-│   └── administrasi/              # Halaman dashboard admin
+│   └── administrasi/              # Halaman dashboard administrasi
 │       ├── layout.tsx             # Layout admin (Sidebar, Topbar)
 │       ├── pengaturan/            # Konfigurasi data OPD
 │       └── manajemen-konten/      # Pengelolaan berita, galeri, dst.
