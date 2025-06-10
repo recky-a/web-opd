@@ -1,4 +1,36 @@
 import { Author } from 'next/dist/lib/metadata/types/metadata-types';
+
+/**
+ * Base type for any navigation link.
+ */
+type NavLink = {
+  name: string;
+  href: string;
+  description: string;
+};
+/**
+ * Type for a nested/child navigation item.
+ * The icon is optional, but it can have its own children.
+ */
+export type ChildNavItem = NavLink & {
+  icon?: string; // Icon is optional for children
+  children?: ChildNavItem[];
+};
+
+/**
+ * Type for a top-level main navigation item.
+ * The icon is REQUIRED, and its children are of type ChildNavItem.
+ */
+export type MainNavItem = NavLink & {
+  icon: string;
+  children?: ChildNavItem[];
+};
+
+/**
+ * Type for footer navigation, which does not require an icon.
+ */
+export type FooterNavItem = NavLink;
+
 function removeTrailingSlash(str: string) {
   return str.replace(/\/+$/, '');
 }
@@ -7,7 +39,8 @@ const isDevelopment = process.env.NODE_ENV === 'development';
 // Better URL handling for development vs production
 const getBaseUrl = (): string => {
   if (isDevelopment) {
-    return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+    return 'http://localhost:3000';
+    // return process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
   }
   return (
     process.env.NEXT_PUBLIC_BASE_URL || 'https://dinkominfotik.bangka.go.id'
@@ -57,7 +90,7 @@ export interface DepartmentConfig {
 // Main site configuration with enhanced security and compliance
 export const siteConfig = {
   name: 'Dinas Komunikasi, Informatika, dan Statistik Kabupaten Bangka',
-  shortName: 'Dinkominfotik Bangka',
+  shortName: 'Dinkominfotik',
   description:
     'Website Resmi Dinas Komunikasi, Informatika, dan Statistik Kabupaten Bangka - Melayani masyarakat dengan transparansi, akuntabilitas, dan inovasi teknologi informasi.',
   url: validateUrl(baseUrl),
@@ -311,7 +344,7 @@ export const departments: Record<string, DepartmentConfig> = {
   pertanian: {
     id: 'pertanian',
     name: 'Dinas Pertanian dan Ketahanan Pangan',
-    shortName: 'Dispertapan',
+    shortName: 'Dinpertan',
     description:
       'Menyelenggarakan urusan pemerintahan di bidang pertanian dan ketahanan pangan untuk mendukung kedaulatan pangan Kabupaten Bangka.',
     domain: 'pertanian.bangka.go.id',
@@ -372,7 +405,14 @@ export const getCurrentDepartment = (): DepartmentConfig => {
 };
 
 // Enhanced navigation with accessibility and SEO
-export const navigation = {
+export const navigation: {
+  main: MainNavItem[];
+  footer: {
+    layanan: FooterNavItem[];
+    informasi: FooterNavItem[];
+    legal: FooterNavItem[];
+  };
+} = {
   main: [
     {
       name: 'Beranda',
@@ -385,6 +425,28 @@ export const navigation = {
       href: '/profil',
       description: 'Informasi profil organisasi',
       icon: 'building',
+      children: [
+        {
+          name: 'Sambutan Kepala Dinas',
+          href: '/profil/sambutan-kepala-dinas',
+          description: 'Kata sambutan dari kepala dinas.',
+        },
+        {
+          name: 'Visi dan Misi',
+          href: '/profil/visi-dan-misi',
+          description: 'Tujuan dan cita-cita organisasi.',
+        },
+        {
+          name: 'Struktur Organisasi',
+          href: '/profil/struktur-organisasi',
+          description: 'Bagan struktur organisasi.',
+        },
+        {
+          name: 'Tugas Pokok dan Fungsi',
+          href: '/profil/tugas-pokok-dan-fungsi',
+          description: 'Rincian tugas dan fungsi (Tupoksi).',
+        },
+      ],
     },
     {
       name: 'Layanan',
@@ -445,17 +507,17 @@ export const navigation = {
     informasi: [
       {
         name: 'Struktur Organisasi',
-        href: '/profil/struktur',
+        href: '/profil/struktur-organisasi', // Corrected path
         description: 'Bagan organisasi',
       },
       {
         name: 'Visi & Misi',
-        href: '/profil/visi-misi',
+        href: '/profil/visi-dan-misi', // Corrected path
         description: 'Visi misi organisasi',
       },
       {
         name: 'Tugas & Fungsi',
-        href: '/profil/tugas-fungsi',
+        href: '/profil/tugas-pokok-dan-fungsi', // Corrected path
         description: 'Tupoksi organisasi',
       },
       {
