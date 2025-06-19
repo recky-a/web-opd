@@ -21,7 +21,7 @@ permissions:
 
 env:
   NODE_ENV: production
-  PNPM_VERSION: 9.15.2
+  PNPM_VERSION: 10.12.1
   NODE_VERSION: 22.x
 
 jobs:
