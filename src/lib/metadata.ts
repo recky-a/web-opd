@@ -1,6 +1,7 @@
 // lib/metadata.ts
+import { env } from '@/env';
 import { Metadata } from 'next';
-import { getCurrentDepartment, siteAuthors, siteConfig } from './constants';
+import { siteAuthors, siteConfig } from './config';
 
 interface PageMetadataOptions {
   title?: string;
@@ -15,17 +16,14 @@ interface PageMetadataOptions {
  * Generate clean, minimal metadata optimized for Next.js 15
  */
 export function generateMetadata(options: PageMetadataOptions = {}): Metadata {
-  const department = getCurrentDepartment();
-  const baseTitle = `${department.name} Kabupaten Bangka`;
+  const baseTitle = env.NEXT_PUBLIC_SITE_NAME;
 
   const title = options.title ? `${options.title} | ${baseTitle}` : baseTitle;
-  const description = options.description || department.description;
+  const description = options.description || siteConfig.description;
 
-  const keywords = [
-    ...siteConfig.keywords,
-    ...department.keywords,
-    ...(options.keywords || []),
-  ].join(', ');
+  const keywords = [...siteConfig.keywords, ...(options.keywords || [])].join(
+    ', '
+  );
 
   return {
     title,
@@ -76,13 +74,11 @@ export function generateMetadata(options: PageMetadataOptions = {}): Metadata {
  * Generate minimal JSON-LD for government organization
  */
 export function generateOrganizationSchema() {
-  const department = getCurrentDepartment();
-
   return {
     '@context': 'https://schema.org',
     '@type': 'GovernmentOrganization',
-    name: department.name + ' Kabupaten Bangka',
-    description: department.description,
+    name: siteConfig.name,
+    description: siteConfig.description,
     url: siteConfig.url,
     logo: `${siteConfig.url}/logo.png`,
 
@@ -95,8 +91,8 @@ export function generateOrganizationSchema() {
 
     contactPoint: {
       '@type': 'ContactPoint',
-      telephone: department.phone || siteConfig.contact.phone,
-      email: department.email || siteConfig.contact.email,
+      telephone: siteConfig.contact.phone,
+      email: siteConfig.contact.email,
       contactType: 'customer service',
     },
 
