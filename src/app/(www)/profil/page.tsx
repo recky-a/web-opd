@@ -4,7 +4,7 @@ import {
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import { navigation } from '@/lib/constants';
+import { navigation } from '@/lib/config';
 import { ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 
