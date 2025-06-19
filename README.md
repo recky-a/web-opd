@@ -45,6 +45,8 @@ src/
 │   │       ├── sambutan-kepala-dinas/page.tsx
 │   │       ├── struktur-organisasi/page.tsx
 │   │       └── tugas-pokok-dan-fungsi/page.tsx
+│   │       └── maklumat-pelayanan/page.tsx
+│   │       └── sejarah/page.tsx
 │   │
 │   ├── (auth)/                    # Halaman otentikasi
 │   │   ├── layout.tsx
@@ -56,13 +58,10 @@ src/
 │       └── manajemen-konten/      # Pengelolaan berita, galeri, dst.
 │
 ├── components/
-│   ├── ui/                        # Komponen dasar dari ShadCN/UI
-│   ├── layouts/                   # Header, Footer, Sidebar
-│   └── shared/                    # Komponen lintas halaman
+│   └── ui/                        # Komponen dasar dari ShadCN/UI
 │
 ├── lib/                           # Fungsi utilitas (db, auth, dsb)
-├── types/                         # Definisi tipe global
-├── styles/                        # CSS global
+├── styles/                        # CSS global, per-layout
 └── public/                        # Aset publik (favicon, gambar, dsb)
 
 File penting lainnya:
@@ -70,6 +69,7 @@ File penting lainnya:
 - `postcss.config.mjs` – Konfigurasi PostCSS
 - `eslint.config.mjs` – Konfigurasi ESLint
 - `tsconfig.json` – Konfigurasi TypeScript
+- `env.ts` – environment variables yang ter-validasi untuk type-safe
 ```
 
 ---
@@ -123,7 +123,6 @@ http://localhost:3000
 ## 📌 Catatan Penting
 
 - Proyek ini **bukan multi-tenant**: satu repositori hanya untuk satu OPD.
-- File `todo.md` **tidak disertakan dalam repositori** karena hanya digunakan untuk catatan lokal (`.gitignore`).
 - Semua komponen dan halaman didesain **semantik, responsif, dan mudah diakses** (accessibility-aware).
 - Layout admin dan publik dipisahkan untuk menjaga keamanan dan struktur yang rapi.
 
