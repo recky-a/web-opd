@@ -17,6 +17,15 @@ permissions:
   checks: write
   security-events: write
 
+# ✅ Global env vars (for all jobs and steps unless overridden)
+env:
+  NODE_ENV: production
+  NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+  NEXT_PUBLIC_SITE_NAME: ${{ secrets.NEXT_PUBLIC_SITE_NAME }}
+  NEXT_PUBLIC_SITE_SHORTNAME: ${{ secrets.NEXT_PUBLIC_SITE_SHORTNAME }}
+  NEXT_PUBLIC_DEV_NAME: ${{ secrets.NEXT_PUBLIC_DEV_NAME }}
+  NEXT_PUBLIC_DEV_URL: ${{ secrets.NEXT_PUBLIC_DEV_URL }}
+
 jobs:
   changes:
     runs-on: ubuntu-latest
@@ -102,13 +111,6 @@ jobs:
 
       - name: Run Build
         run: pnpm build
-        env:
-          NODE_ENV: production
-          NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
-          NEXT_PUBLIC_SITE_NAME: ${{ secrets.NEXT_PUBLIC_SITE_NAME }}
-          NEXT_PUBLIC_SITE_SHORTNAME: ${{ secrets.NEXT_PUBLIC_SITE_SHORTNAME }}
-          NEXT_PUBLIC_DEV_NAME: ${{ secrets.NEXT_PUBLIC_DEV_NAME }}
-          NEXT_PUBLIC_DEV_URL: ${{ secrets.NEXT_PUBLIC_DEV_URL }}
 
       - name: Cache Build Output
         uses: actions/cache@v4
@@ -141,9 +143,9 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Build for Analysis
-        run: pnpm build
         env:
-          ANALYZE: true
+          ANALYZE: true # Override/additional env
+        run: pnpm build
 
       - name: Bundle Analysis
         run: |
