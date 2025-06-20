@@ -289,7 +289,7 @@ export default function Navbar({
         viewport={false}
         className={cn('mx-auto my-3 hidden w-full grow md:flex', className)}
       >
-        <NavigationMenuList className="gap-1 max-[870px]:flex-wrap lg:flex-nowrap lg:gap-4">
+        <NavigationMenuList className="gap-1 lg:flex-nowrap lg:gap-4">
           {navItems.map((nav) => {
             const isChildActive = nav.children?.some(
               (child) => pathname === child.href
@@ -303,7 +303,7 @@ export default function Navbar({
                       : buttonVariants({ variant: 'ghost' })
                   }
                 >
-                  <Icon className="size-5 flex-shrink-0" iconName={nav.icon} />
+                  {/* <Icon className="size-5 flex-shrink-0" iconName={nav.icon} /> */}
                   {nav.name}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -335,7 +335,7 @@ export default function Navbar({
                     )}
                     href={nav.href}
                   >
-                    <Icon className="size-5 shrink-0" iconName={nav.icon} />
+                    {/* <Icon className="size-5 shrink-0" iconName={nav.icon} /> */}
                     {nav.name}
                   </Link>
                 </NavigationMenuLink>
