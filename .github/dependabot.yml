@@ -10,9 +10,9 @@ updates:
       timezone: 'Asia/Jakarta'
     open-pull-requests-limit: 5
     reviewers:
-      - 'your-username' # Replace with actual username
+      - 'recky-a'
     assignees:
-      - 'your-username' # Replace with actual username
+      - 'recky-a'
     commit-message:
       prefix: 'deps'
       include: 'scope'
