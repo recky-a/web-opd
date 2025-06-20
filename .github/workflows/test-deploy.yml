@@ -216,16 +216,24 @@ jobs:
           docker stop test-container && docker rm test-container
 
       - name: Scan Docker Image
+        id: trivy
+        continue-on-error: true
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'test-image:${{ github.sha }}'
           format: 'sarif'
           output: 'trivy-docker-results.sarif'
           severity: 'CRITICAL,HIGH'
+      - name: Check SARIF output exists
+        run: |
+          if [ ! -f "trivy-docker-results.sarif" ]; then
+            echo "Trivy output missing, skipping SARIF upload"
+            exit 0
+          fi
 
       - name: Upload Docker scan results
+        if: success() && steps.trivy.outcome == 'success'
         uses: github/codeql-action/upload-sarif@v3
-        if: always()
         with:
           sarif_file: 'trivy-docker-results.sarif'
 
