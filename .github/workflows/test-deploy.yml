@@ -2,11 +2,9 @@ name: Test Deploy on Develop
 
 on:
   push:
-    branches:
-      - develop
+    branches: [develop]
   pull_request:
-    branches:
-      - develop
+    branches: [develop]
     types: [opened, synchronize, reopened]
 
 concurrency:
@@ -19,10 +17,14 @@ permissions:
   checks: write
   security-events: write
 
+# ✅ Global environment variables
 env:
   NODE_ENV: production
-  PNPM_VERSION: 10.12.1
-  NODE_VERSION: 22.x
+  NEXT_PUBLIC_BASE_URL: ${{ secrets.NEXT_PUBLIC_BASE_URL }}
+  NEXT_PUBLIC_SITE_NAME: ${{ secrets.NEXT_PUBLIC_SITE_NAME }}
+  NEXT_PUBLIC_SITE_SHORTNAME: ${{ secrets.NEXT_PUBLIC_SITE_SHORTNAME }}
+  NEXT_PUBLIC_DEV_NAME: ${{ secrets.NEXT_PUBLIC_DEV_NAME }}
+  NEXT_PUBLIC_DEV_URL: ${{ secrets.NEXT_PUBLIC_DEV_URL }}
 
 jobs:
   changes:
@@ -66,6 +68,8 @@ jobs:
     strategy:
       matrix:
         node-version: [22.x, 23.x]
+    env:
+      NODE_ENV: production
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
@@ -73,7 +77,7 @@ jobs:
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
 
-      - name: Setup Node.js ${{ matrix.node-version }}
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node-version }}
@@ -95,71 +99,35 @@ jobs:
           else
             echo "No test script found, skipping tests"
           fi
-        continue-on-error: false
 
       - name: Run Production Build
         run: pnpm build
-        env:
-          NODE_ENV: production
 
       - name: Validate Build Output
         run: |
-          if [ ! -d ".next" ]; then
-            echo "Build failed: .next directory not found"
-            exit 1
-          fi
-
-          if [ ! -f ".next/BUILD_ID" ]; then
-            echo "Build failed: BUILD_ID not found"
-            exit 1
-          fi
-
-          # Check for critical build files
-          if [ ! -d ".next/static" ]; then
-            echo "Warning: Static files directory not found"
-          fi
-
-          echo "Build validation successful"
-          echo "Build ID: $(cat .next/BUILD_ID)"
+          test -d ".next" || { echo "❌ .next directory missing"; exit 1; }
+          test -f ".next/BUILD_ID" || { echo "❌ BUILD_ID missing"; exit 1; }
+          echo "✅ Build ID: $(cat .next/BUILD_ID)"
 
       - name: Test Production Server
         run: |
           timeout 60s pnpm start &
           SERVER_PID=$!
-
-          # Wait for server to start with timeout
           for i in {1..30}; do
-            if curl -f -s http://localhost:3000/ > /dev/null 2>&1; then
-              echo "Server started successfully"
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "Server failed to start within timeout"
-              kill $SERVER_PID 2>/dev/null || true
-              exit 1
-            fi
+            if curl -fs http://localhost:3000/ > /dev/null; then break; fi
+            if [ $i -eq 30 ]; then echo "❌ Server failed to start"; kill $SERVER_PID; exit 1; fi
             sleep 2
           done
-
-          # Test server health
-          if curl -f -s http://localhost:3000/ > /dev/null; then
-            echo "Production server test passed"
-          else
-            echo "Production server test failed"
-            kill $SERVER_PID 2>/dev/null || true
-            exit 1
-          fi
-
-          kill $SERVER_PID 2>/dev/null || true
+          curl -fs http://localhost:3000/ || { echo "❌ Server health check failed"; kill $SERVER_PID; exit 1; }
+          echo "✅ Production server test passed"
+          kill $SERVER_PID
 
       - name: Bundle Size Analysis
         run: |
-          # Check if bundle analyzer is configured
           if grep -q "@next/bundle-analyzer" package.json; then
-            echo "Running bundle analysis..."
-            ANALYZE=true pnpm build || echo "Bundle analysis completed with warnings"
+            ANALYZE=true pnpm build || echo "⚠️ Bundle analysis warnings"
           else
-            echo "Bundle analyzer not configured, skipping analysis"
+            echo "ℹ️ Bundle analyzer not configured, skipping"
           fi
 
   security_scan:
@@ -194,7 +162,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '22.x'
           cache: 'pnpm'
 
       - name: Install Dependencies
@@ -202,14 +170,10 @@ jobs:
 
       - name: Security Audit
         run: |
-          echo "Running security audit..."
           pnpm audit --audit-level moderate --json > audit-results.json || {
-            echo "Security vulnerabilities found:"
-            cat audit-results.json | jq -r '.advisories | to_entries[] | "\(.value.title) - \(.value.severity)"' || echo "Failed to parse audit results"
-            echo "Please review and fix security vulnerabilities."
+            cat audit-results.json | jq -r '.advisories | to_entries[] | "\(.value.title) - \(.value.severity)"'
             exit 1
           }
-          echo "Security audit passed"
 
   validate_docker_build:
     name: 🐳 Validate Docker Image Build
@@ -224,7 +188,6 @@ jobs:
         uses: docker/setup-buildx-action@v3
 
       - name: Build Docker Image
-        id: build
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -239,53 +202,20 @@ jobs:
 
       - name: Test Docker Image
         run: |
-          # Start container in background with health check
           docker run -d --name test-container -p 3000:3000 \
             --health-cmd="curl -f http://localhost:3000/ || exit 1" \
-            --health-interval=10s \
-            --health-timeout=5s \
-            --health-retries=3 \
+            --health-interval=10s --health-timeout=5s --health-retries=3 \
             test-image:${{ github.sha }}
-
-          # Wait for container to be healthy
           for i in {1..30}; do
-            health_status=$(docker inspect --format='{{.State.Health.Status}}' test-container 2>/dev/null || echo "unhealthy")
-            if [ "$health_status" = "healthy" ]; then
-              echo "Container is healthy"
-              break
-            elif [ "$health_status" = "unhealthy" ]; then
-              echo "Container health check failed"
-              docker logs test-container
-              docker stop test-container
-              docker rm test-container
-              exit 1
-            fi
-            if [ $i -eq 30 ]; then
-              echo "Container failed to become healthy within timeout"
-              docker logs test-container
-              docker stop test-container
-              docker rm test-container
-              exit 1
-            fi
+            status=$(docker inspect --format='{{.State.Health.Status}}' test-container)
+            [ "$status" = "healthy" ] && break
+            [ "$status" = "unhealthy" ] && docker logs test-container && exit 1
             sleep 2
           done
+          curl -fs http://localhost:3000/ || { docker logs test-container; exit 1; }
+          docker stop test-container && docker rm test-container
 
-          # Additional application test
-          if curl -f -s http://localhost:3000/ > /dev/null; then
-            echo "Docker container test passed"
-          else
-            echo "Docker container test failed"
-            docker logs test-container
-            docker stop test-container
-            docker rm test-container
-            exit 1
-          fi
-
-          # Clean up
-          docker stop test-container
-          docker rm test-container
-
-      - name: Scan Docker Image for Vulnerabilities
+      - name: Scan Docker Image
         uses: aquasecurity/trivy-action@master
         with:
           image-ref: 'test-image:${{ github.sha }}'
@@ -314,7 +244,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: ${{ env.NODE_VERSION }}
+          node-version: '22.x'
           cache: 'pnpm'
 
       - name: Install Dependencies
@@ -330,43 +260,26 @@ jobs:
         run: |
           timeout 120s pnpm start &
           SERVER_PID=$!
-
-          # Wait for server to start
           for i in {1..30}; do
-            if curl -f -s http://localhost:3000/ > /dev/null 2>&1; then
-              echo "Server ready for performance testing"
-              break
-            fi
-            if [ $i -eq 30 ]; then
-              echo "Server failed to start for performance testing"
-              kill $SERVER_PID 2>/dev/null || true
-              exit 1
-            fi
+            curl -fs http://localhost:3000/ && break
+            [ $i -eq 30 ] && kill $SERVER_PID && exit 1
             sleep 2
           done
-
-          # Run Lighthouse with custom config
           lhci autorun \
             --upload.target=temporary-public-storage \
             --collect.numberOfRuns=3 \
-            --collect.url=http://localhost:3000 \
-            || {
-              echo "Lighthouse test completed with warnings"
-            }
-
-          kill $SERVER_PID 2>/dev/null || true
+            --collect.url=http://localhost:3000 || echo "Lighthouse completed with warnings"
+          kill $SERVER_PID
 
   summary:
     name: 📋 Test Summary
     runs-on: ubuntu-latest
     needs:
-      [
-        changes,
-        validate_build_artifact,
-        security_scan,
-        validate_docker_build,
-        performance_test,
-      ]
+      - changes
+      - validate_build_artifact
+      - security_scan
+      - validate_docker_build
+      - performance_test
     if: always()
     steps:
       - name: Generate Summary
@@ -380,68 +293,41 @@ jobs:
               performance: '${{ needs.performance_test.result }}'
             };
 
-            const getStatusIcon = (status) => {
-              switch(status) {
-                case 'success': return '✅';
-                case 'failure': return '❌';
-                case 'cancelled': return '⏹️';
-                case 'skipped': return '⏭️';
-                default: return '❓';
-              }
-            };
+            const icons = { success: '✅', failure: '❌', cancelled: '⏹️', skipped: '⏭️', unknown: '❓' };
+            const texts = { success: 'Passed', failure: 'Failed', cancelled: 'Cancelled', skipped: 'Skipped', unknown: 'Unknown' };
 
-            const getStatusText = (status) => {
-              switch(status) {
-                case 'success': return 'Passed';
-                case 'failure': return 'Failed';
-                case 'cancelled': return 'Cancelled';
-                case 'skipped': return 'Skipped';
-                default: return 'Unknown';
-              }
-            };
+            const status = (r) => icons[r] || icons.unknown;
+            const label = (r) => texts[r] || texts.unknown;
 
             const passed = Object.values(results).filter(r => r === 'success').length;
             const failed = Object.values(results).filter(r => r === 'failure').length;
             const total = Object.values(results).filter(r => r !== 'skipped').length;
+            const overall = failed > 0 ? '❌ Some tests failed' : passed === total ? '✅ All tests passed' : '⚠️ Some tests skipped';
 
-            const overallStatus = failed > 0 ? '❌ Some tests failed' : passed === total ? '✅ All tests passed' : '⚠️ Tests completed with warnings';
-
-            const summary = `## 🚀 Deploy Test Summary
-
-            **Overall Status**: ${overallStatus}
+            const summary = `
+            ## 🚀 Deploy Test Summary
+            **Overall Status**: ${overall}
             **Results**: ${passed} passed, ${failed} failed, ${total - passed - failed} other
 
             ### Detailed Results:
             | Test | Status | Result |
-            |------|--------|---------|
-            | 🧪 Build Validation | ${getStatusIcon(results.build)} | ${getStatusText(results.build)} |
-            | 🔒 Security Scan | ${getStatusIcon(results.security)} | ${getStatusText(results.security)} |
-            | 🐳 Docker Build | ${getStatusIcon(results.docker)} | ${getStatusText(results.docker)} |
-            | ⚡ Performance Test | ${getStatusIcon(results.performance)} | ${getStatusText(results.performance)} |
+            |------|--------|--------|
+            | 🧪 Build Validation | ${status(results.build)} | ${label(results.build)} |
+            | 🔒 Security Scan    | ${status(results.security)} | ${label(results.security)} |
+            | 🐳 Docker Build     | ${status(results.docker)} | ${label(results.docker)} |
+            | ⚡ Performance Test | ${status(results.performance)} | ${label(results.performance)} |
 
-            ${failed > 0 ? '⚠️ **Action Required**: Please check the failed tests and fix any issues before deploying.' : ''}
+            ${failed > 0 ? '⚠️ **Action Required**: Please fix the failed checks before deploying.' : ''}
             `;
 
-            // Post comment on PR
             if (context.eventName === 'pull_request') {
-              try {
-                await github.rest.issues.createComment({
-                  issue_number: context.issue.number,
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  body: summary
-                });
-              } catch (error) {
-                console.log('Failed to post PR comment:', error.message);
-              }
+              await github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                body: summary
+              }).catch(err => console.log('Failed to post comment:', err.message));
             }
 
-            // Add to job summary
-            await core.summary
-              .addRaw(summary)
-              .write();
-
-            // Set output for other workflows
+            await core.summary.addRaw(summary).write();
             core.setOutput('overall-status', failed > 0 ? 'failure' : 'success');
-            core.setOutput('passed-count', passed);
-            core.setOutput('failed-count', failed);
