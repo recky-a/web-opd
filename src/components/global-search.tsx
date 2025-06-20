@@ -22,7 +22,7 @@ import {
 import { JSX, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
-import { cn } from '@/lib/utils'; // Assuming cn utility is here or similar location
+import { cn } from '@/lib/utils';
 
 /**
  * @description Props for the GlobalSearch component.
@@ -48,20 +48,14 @@ export function GlobalSearch({ className }: GlobalSearchProps): JSX.Element {
       <Button
         variant="outline"
         size="icon"
-        className={cn(
-          'relative font-normal shadow-none max-[350px]:w-6.5 sm:size-8 md:h-9 md:w-42 md:justify-start md:pr-12',
-          className // Apply the passed className here
-        )}
         aria-label="Buka Dialog/Window Pencarian Website"
         onClick={() => setOpen(!open)}
+        className={cn('max-[350px]:w-6.5', className)}
       >
-        <Search
-          className="size-5 max-[350px]:size-4 md:mx-2"
-          aria-hidden="true"
-        />
-        <span className="hidden md:inline-flex">Pencarian...</span>
-        <kbd className="bg-muted pointer-events-none absolute top-1.5 right-1.5 hidden h-5 items-center gap-1 rounded border px-1.5 font-mono text-[10px] font-medium opacity-100 select-none md:flex">
-          <span className="text-xs">⌘</span>K
+        <Search aria-hidden="true" />
+        <span className="hidden">Pencarian...</span>
+        <kbd className="hidden">
+          <span>⌘</span>K
         </kbd>
       </Button>
       <CommandDialog open={open} onOpenChange={setOpen}>
