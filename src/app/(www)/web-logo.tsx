@@ -1,4 +1,3 @@
-// web-logo.tsx
 import { siteConfig } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
@@ -48,7 +47,7 @@ export default function WebLogo({
     >
       <figure
         className={cn(
-          'group-hover:ring-primary/50 flex size-12 shrink-0 items-center justify-center rounded-md bg-white/90 p-1 shadow-md ring-2 ring-transparent transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-lg dark:bg-gray-800 dark:group-hover:ring-blue-400',
+          'group-hover:ring-secondary/50 flex size-12 shrink-0 items-center justify-center rounded-md bg-white/90 p-1 shadow-md ring-2 ring-transparent transition-all duration-300 ease-in-out group-hover:scale-105 group-hover:shadow-lg',
           imageClassName
         )}
       >
@@ -65,8 +64,8 @@ export default function WebLogo({
         {!hideShortName && (
           <abbr
             className={cn(
-              'font-bold uppercase transition-colors duration-300 group-hover:text-blue-600', // Removed text-slate-800 and dark:text-slate-200
-              'text-primary-foreground', // Added to ensure contrast against primary background
+              'group-hover:text-secondary dark:text-secondary-foreground font-bold uppercase transition-colors duration-300',
+              'text-primary-foreground',
               shortNameClassName
             )}
           >
@@ -76,8 +75,8 @@ export default function WebLogo({
         {!hideFullName && (
           <small
             className={cn(
-              'text-tiny md:text-md capitalize transition-colors duration-300 group-hover:text-blue-600 sm:text-sm', // Removed text-slate-600 and dark:text-slate-400
-              'text-primary-foreground/80', // Added for slightly subdued but still contrasting text
+              'text-tiny dark:text-secondary-foreground md:text-md group-hover:text-secondary capitalize transition-colors duration-300 sm:text-sm',
+              'text-primary-foreground/80',
               fullNameClassName
             )}
           >
