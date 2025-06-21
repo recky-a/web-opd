@@ -1,3 +1,9 @@
+import HeroSection from './_sections/hero';
+
 export default function Homepage() {
-  return <div>Hi! From homepage!</div>;
+  return (
+    <main id="main-content">
+      <HeroSection />
+    </main>
+  );
 }
