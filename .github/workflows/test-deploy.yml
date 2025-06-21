@@ -187,16 +187,6 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Generate .env file
-        run: |
-          cat <<EOF > .env
-          NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
-          NEXT_PUBLIC_SITE_NAME=${{ secrets.NEXT_PUBLIC_SITE_NAME }}
-          NEXT_PUBLIC_SITE_SHORTNAME=${{ secrets.NEXT_PUBLIC_SITE_SHORTNAME }}
-          NEXT_PUBLIC_DEV_NAME=${{ secrets.NEXT_PUBLIC_DEV_NAME }}
-          NEXT_PUBLIC_DEV_URL=${{ secrets.NEXT_PUBLIC_DEV_URL }}
-          EOF
-
       - name: Build Docker Image
         uses: docker/build-push-action@v6
         with:
@@ -209,11 +199,11 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             NODE_ENV=production
-            NEXT_PUBLIC_BASE_URL=${{ secrets.NEXT_PUBLIC_BASE_URL }}
-            NEXT_PUBLIC_SITE_NAME=${{ secrets.NEXT_PUBLIC_SITE_NAME }}
-            NEXT_PUBLIC_SITE_SHORTNAME=${{ secrets.NEXT_PUBLIC_SITE_SHORTNAME }}
-            NEXT_PUBLIC_DEV_NAME=${{ secrets.NEXT_PUBLIC_DEV_NAME }}
-            NEXT_PUBLIC_DEV_URL=${{ secrets.NEXT_PUBLIC_DEV_URL }}
+            NEXT_PUBLIC_BASE_URL=${{ env.NEXT_PUBLIC_BASE_URL }}
+            NEXT_PUBLIC_SITE_NAME=${{ env.NEXT_PUBLIC_SITE_NAME }}
+            NEXT_PUBLIC_SITE_SHORTNAME=${{ env.NEXT_PUBLIC_SITE_SHORTNAME }}
+            NEXT_PUBLIC_DEV_NAME=${{ env.NEXT_PUBLIC_DEV_NAME }}
+            NEXT_PUBLIC_DEV_URL=${{ env.NEXT_PUBLIC_DEV_URL }}
 
       - name: Test Docker Image
         run: |
@@ -239,6 +229,7 @@ jobs:
           format: 'sarif'
           output: 'trivy-docker-results.sarif'
           severity: 'CRITICAL,HIGH'
+
       - name: Check SARIF output exists
         run: |
           if [ ! -f "trivy-docker-results.sarif" ]; then
