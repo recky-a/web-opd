@@ -1,5 +1,3 @@
-'use client';
-
 import { buttonVariants } from '@/components/ui/button';
 import { siteConfig } from '@/lib/config';
 import { cn } from '@/lib/utils';
