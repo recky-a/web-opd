@@ -207,18 +207,56 @@ jobs:
 
       - name: Test Docker Image
         run: |
-          docker run -d --name test-container -p 3000:3000 \
-            --health-cmd="curl -f http://localhost:3000/ || exit 1" \
-            --health-interval=10s --health-timeout=5s --health-retries=3 \
-            test-image:${{ github.sha }}
+          # Start container without built-in healthcheck, we'll do manual testing
+          docker run -d --name test-container -p 3000:3000 test-image:${{ github.sha }}
+
+          # Wait for container to be ready
+          echo "Waiting for container to start..."
+          sleep 5
+
+          # Check if container is running
+          if ! docker ps | grep -q test-container; then
+            echo "❌ Container failed to start"
+            docker logs test-container
+            exit 1
+          fi
+
+          # Test connectivity with retries
+          echo "Testing container connectivity..."
           for i in {1..30}; do
-            status=$(docker inspect --format='{{.State.Health.Status}}' test-container)
-            [ "$status" = "healthy" ] && break
-            [ "$status" = "unhealthy" ] && docker logs test-container && exit 1
+            if curl -fs http://localhost:3000/ > /dev/null 2>&1; then
+              echo "✅ Container is responding on attempt $i"
+              break
+            fi
+            if [ $i -eq 30 ]; then
+              echo "❌ Container failed to respond after 30 attempts"
+              echo "Container logs:"
+              docker logs test-container
+              docker stop test-container
+              docker rm test-container
+              exit 1
+            fi
+            echo "Attempt $i failed, retrying in 2 seconds..."
             sleep 2
           done
-          curl -fs http://localhost:3000/ || { docker logs test-container; exit 1; }
-          docker stop test-container && docker rm test-container
+
+          # Final health check
+          echo "Performing final health check..."
+          response=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:3000/)
+          if [ "$response" = "200" ]; then
+            echo "✅ Docker image test passed - HTTP $response"
+          else
+            echo "❌ Docker image test failed - HTTP $response"
+            docker logs test-container
+            docker stop test-container
+            docker rm test-container
+            exit 1
+          fi
+
+          # Cleanup
+          docker stop test-container
+          docker rm test-container
+          echo "✅ Container test completed successfully"
 
       - name: Scan Docker Image
         id: trivy
