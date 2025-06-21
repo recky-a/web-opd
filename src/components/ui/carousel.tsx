@@ -1,13 +1,13 @@
 'use client';
 
-import * as React from 'react';
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from 'embla-carousel-react';
 import { ArrowLeft, ArrowRight } from 'lucide-react';
+import * as React from 'react';
 
-import { cn } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -132,13 +132,17 @@ function Carousel({
   );
 }
 
-function CarouselContent({ className, ...props }: React.ComponentProps<'div'>) {
+function CarouselContent({
+  className,
+  containerClassName,
+  ...props
+}: React.ComponentProps<'div'> & { containerClassName: string }) {
   const { carouselRef, orientation } = useCarousel();
 
   return (
     <div
       ref={carouselRef}
-      className="overflow-hidden"
+      className={cn('overflow-hidden', containerClassName)}
       data-slot="carousel-content"
     >
       <div
@@ -232,10 +236,10 @@ function CarouselNext({
 }
 
 export {
-  type CarouselApi,
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselPrevious,
   CarouselNext,
+  CarouselPrevious,
+  type CarouselApi,
 };
