@@ -3,11 +3,16 @@
 import useEmblaCarousel, {
   type UseEmblaCarouselType,
 } from 'embla-carousel-react';
-import { ArrowLeft, ArrowRight } from 'lucide-react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 import * as React from 'react';
 
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
+
+interface CarouselSlideIndicatorProps {
+  locale?: 'en' | 'id';
+  className?: string;
+}
 
 type CarouselApi = UseEmblaCarouselType[1];
 type UseCarouselParameters = Parameters<typeof useEmblaCarousel>;
@@ -136,7 +141,7 @@ function CarouselContent({
   className,
   containerClassName,
   ...props
-}: React.ComponentProps<'div'> & { containerClassName: string }) {
+}: React.ComponentProps<'div'> & { containerClassName?: string }) {
   const { carouselRef, orientation } = useCarousel();
 
   return (
@@ -199,7 +204,7 @@ function CarouselPrevious({
       onClick={scrollPrev}
       {...props}
     >
-      <ArrowLeft />
+      <ChevronLeft />
       <span className="sr-only">Previous slide</span>
     </Button>
   );
@@ -229,17 +234,50 @@ function CarouselNext({
       onClick={scrollNext}
       {...props}
     >
-      <ArrowRight />
+      <ChevronRight />
       <span className="sr-only">Next slide</span>
     </Button>
   );
 }
 
+function CarouselSlideIndicator({
+  locale = 'en',
+  className,
+}: CarouselSlideIndicatorProps) {
+  const { api } = useCarousel();
+  const [current, setCurrent] = React.useState(0);
+  const [total, setTotal] = React.useState(0);
+
+  React.useEffect(() => {
+    if (!api) return;
+
+    const updateSlideInfo = () => {
+      setCurrent(api.selectedScrollSnap() + 1); // +1 because API is 0-indexed
+      setTotal(api.scrollSnapList().length);
+    };
+
+    updateSlideInfo();
+    api.on('select', updateSlideInfo);
+
+    return () => {
+      api.off('select', updateSlideInfo);
+    };
+  }, [api]);
+
+  const separator = locale === 'id' ? 'dari' : 'of';
+
+  return (
+    <div className={cn('text-muted-foreground text-center text-sm', className)}>
+      <span className="font-bold">{current}</span> {separator} {total}
+    </div>
+  );
+}
 export {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
+  CarouselSlideIndicator,
   type CarouselApi,
 };
