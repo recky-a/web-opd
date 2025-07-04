@@ -1,4 +1,4 @@
-// config.ts
+import { IconName } from '@/components/lucide-icon';
 import { env } from '@/env';
 import { Author } from 'next/dist/lib/metadata/types/metadata-types';
 
@@ -123,37 +123,30 @@ type NavLink = {
 };
 
 export type ChildNavItem = NavLink & {
-  icon?: string;
+  icon?: IconName;
   children?: ChildNavItem[];
 };
 
 export type MainNavItem = NavLink & {
-  icon: string;
+  icon: IconName;
   children?: ChildNavItem[];
 };
 
 export type FooterNavItem = NavLink;
 
-export const navigation: {
-  main: MainNavItem[];
-  footer: {
-    layanan: FooterNavItem[];
-    informasi: FooterNavItem[];
-    legal: FooterNavItem[];
-  };
-} = {
+export const navigation = {
   main: [
     {
       name: 'Beranda',
       href: '/',
       description: 'Halaman utama website resmi',
-      icon: 'home',
+      icon: 'House',
     },
     {
       name: 'Profil',
       href: '/profil',
       description: 'Informasi Lengkap Tentang/Profil',
-      icon: 'building',
+      icon: 'Building',
       children: [
         {
           name: 'Sambutan Kepala Dinas',
@@ -191,31 +184,31 @@ export const navigation: {
       name: 'Layanan',
       href: '/layanan',
       description: 'Layanan Publik dan Pelayanan Digital ',
-      icon: 'service',
+      icon: 'BriefCase',
     },
     {
       name: 'Berita',
       href: '/berita',
       description: 'Berita dan Informasi Terkini ',
-      icon: 'news',
+      icon: 'Newspaper',
     },
     {
       name: 'Pengumuman',
       href: '/pengumuman',
       description: 'Pengumuman Resmi & Info Penting',
-      icon: 'megaphone',
+      icon: 'Megaphone',
     },
     {
       name: 'Galeri',
       href: '/galeri',
       description: 'Koleksi Foto dan Video Dokumentasi',
-      icon: 'gallery',
+      icon: 'Image',
     },
     {
       name: 'Kontak',
       href: '/kontak',
       description: 'Informasi Kontak dan Lokasi Kantor',
-      icon: 'contact',
+      icon: 'Phone',
     },
   ],
 
