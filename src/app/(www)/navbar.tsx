@@ -1,7 +1,7 @@
 'use client';
 
 import { BrandIcon } from '@/components/brand-icon';
-import Icon, { IconKeys } from '@/components/icon';
+import LucideIcon, { IconName } from '@/components/lucide-icon';
 import { buttonVariants } from '@/components/ui/button';
 import {
   Collapsible,
@@ -44,7 +44,7 @@ import { siFacebook, siInstagram, siX, siYoutube } from 'simple-icons';
 interface NavigationItem {
   name: string;
   href: string;
-  icon: IconKeys;
+  icon: IconName;
   description: string;
   children?: NavigationItem[];
 }
@@ -77,7 +77,7 @@ const NavLinkItem = memo(function NavLinkItem({
           'flex h-auto items-center justify-start gap-3 rounded-sm py-3 font-bold'
         )}
       >
-        <Icon className="size-5 flex-shrink-0" iconName={nav.icon} />
+        <LucideIcon className="size-5 flex-shrink-0" name={nav.icon} />
         <span className="flex w-full items-center justify-between text-base">
           {nav.name}
           <small className="text-tiny text-right font-normal whitespace-normal italic">
@@ -118,7 +118,7 @@ function CollapsibleNavItem({
             `text-primary flex h-auto w-full items-center justify-start gap-3 rounded-md px-3 py-3 text-left font-bold transition-colors`
           )}
         >
-          <Icon className="size-5 flex-shrink-0" iconName={nav.icon} />
+          <LucideIcon className="size-5 flex-shrink-0" name={nav.icon} />
           <span className="flex w-full items-center justify-between text-base">
             {nav.name}
             <small className="text-tiny text-muted-foreground max-w-[80%] text-right font-normal whitespace-normal italic">
