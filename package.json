@@ -6,20 +6,10 @@
   "engines": {
     "node": ">=22.0.0"
   },
-  "lint-staged": {
-    "**/*.{ts,tsx,js,jsx}": [
-      "eslint --fix --max-warnings=0",
-      "prettier --write"
-    ],
-    "**/*.{json,md,css,yml,yaml}": [
-      "prettier --write"
-    ]
-  },
   "scripts": {
     "dev": "next dev --turbo",
     "build": "next build",
     "start": "next start",
-    "prepare": "husky",
     "lint": "next lint --max-warnings=0",
     "lint:fix": "next lint --fix --max-warnings=0",
     "format": "prettier --write .",
@@ -66,26 +56,17 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@commitlint/config-conventional": "^19.8.1",
-    "@commitlint/types": "^19.8.1",
     "@eslint/eslintrc": "^3.3.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
-    "@semantic-release/github": "^11.0.3",
     "@tailwindcss/postcss": "^4.1.10",
     "@types/node": "^22.15.32",
     "@types/react": "^19.1.8",
     "@types/react-dom": "^19.1.6",
     "babel-plugin-react-compiler": "19.1.0-rc.2",
-    "commitlint": "^19.8.1",
     "eslint": "^9.29.0",
     "eslint-config-next": "15.3.3",
     "eslint-config-prettier": "^10.1.5",
-    "husky": "^9.1.7",
-    "lint-staged": "^16.1.2",
     "prettier": "^3.5.3",
     "prettier-plugin-tailwindcss": "^0.6.12",
-    "semantic-release": "^24.2.5",
     "tailwindcss": "^4.1.10",
     "tw-animate-css": "^1.3.4",
     "typescript": "^5.8.3"

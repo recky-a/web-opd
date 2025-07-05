@@ -8,6 +8,7 @@
 node_modules/
 README.md
 .github/
-*.md
+\*.md
 !package.json
 !pnpm-lock.yaml
+.vscode
