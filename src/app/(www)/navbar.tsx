@@ -286,7 +286,6 @@ export default function Navbar({
 
       {/* --- Desktop Navigation Menu (Now Dynamic) --- */}
       <NavigationMenu
-        viewport={false}
         className={cn('mx-auto my-3 hidden w-full grow md:flex', className)}
       >
         <NavigationMenuList className="gap-1 lg:flex-nowrap lg:gap-4">
