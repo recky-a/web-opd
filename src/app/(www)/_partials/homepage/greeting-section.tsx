@@ -1,5 +1,3 @@
-'use client';
-
 import {
   Accordion,
   AccordionContent,
@@ -49,7 +47,7 @@ export default function GreetingSection({
       )}
       aria-labelledby="greeting-heading"
     >
-      {/* Header section with name + desc */}
+      {/* Header */}
       <header className="container mx-auto mb-10 flex max-w-screen-xl flex-col gap-3 px-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1
@@ -68,13 +66,13 @@ export default function GreetingSection({
         </p>
       </header>
 
+      {/* Main Grid */}
       <div className="container mx-auto grid max-w-screen-xl grid-cols-1 gap-12 px-4 md:grid-cols-2">
-        {/* Head section */}
+        {/* Head of OPD */}
         <article
           aria-labelledby="head-of-department"
           className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2"
         >
-          {/* Head photo */}
           <figure className="ring-border relative overflow-hidden rounded-xl shadow-xl ring-1">
             <AspectRatio ratio={4 / 5}>
               <Image
@@ -88,7 +86,6 @@ export default function GreetingSection({
             <figcaption className="sr-only">{headName}</figcaption>
           </figure>
 
-          {/* Head content */}
           <div className="space-y-5">
             <header className="space-y-1">
               <span className="bg-primary/10 text-primary inline-block rounded px-2 py-1 text-[10px] font-medium tracking-wide uppercase sm:text-xs">
@@ -108,14 +105,17 @@ export default function GreetingSection({
 
             {headQuote && (
               <blockquote className="border-primary/30 bg-muted/30 text-muted-foreground flex items-start gap-2 rounded-md border-l-4 p-3 text-sm italic">
-                <Quote className="text-primary mt-1 h-4 w-4" aria-hidden />
-                <p className="leading-relaxed">“{headQuote}”</p>
+                <Quote
+                  className="text-primary size-4 shrink-0 rotate-180 md:size-5"
+                  aria-hidden
+                />
+                {headQuote}
               </blockquote>
             )}
           </div>
         </article>
 
-        {/* Division structure */}
+        {/* Division Structure */}
         <article
           aria-labelledby="division-structure"
           className="flex flex-col justify-center space-y-6"
