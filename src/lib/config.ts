@@ -16,13 +16,6 @@ export const siteConfig = {
   country: 'Indonesia',
   timezone: 'Asia/Jakarta',
 
-  compliance: {
-    wcagLevel: 'AA',
-    lastAuditDate: '2024-12-01',
-    accessibilityContact: 'aksesibilitas@dinkominfotik.bangka.go.id',
-    privacyOfficer: 'privacy@dinkominfotik.bangka.go.id',
-  },
-
   contact: {
     phone: '+62-717-421234',
     fax: '+62-717-421235',
@@ -88,21 +81,6 @@ export const siteConfig = {
     'Data Analytics',
     'Digitalisasi',
   ],
-
-  monitoring: {
-    analyticsId: process.env.NEXT_PUBLIC_GA_ID,
-    hotjarId: process.env.NEXT_PUBLIC_HOTJAR_ID,
-    sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  },
-
-  features: {
-    darkMode: true,
-    multiLanguage: false,
-    chatBot: process.env.NEXT_PUBLIC_ENABLE_CHATBOT === 'true',
-    onlineServices: true,
-    guestBook: true,
-    survey: true,
-  },
 };
 
 export const siteAuthors: Author[] = [
