@@ -6,38 +6,20 @@ import {
 } from '@/components/ui/accordion';
 import { AspectRatio } from '@/components/ui/aspect-ratio';
 import { cn } from '@/lib/utils';
+import { OPD } from '@/schemas/opd';
 import { Quote } from 'lucide-react';
 import Image from 'next/image';
 
-interface Division {
-  title: string;
-  description: string;
-}
-
 interface GreetingSectionProps {
-  opdName: string;
   welcomeMessage?: string;
-  description?: string;
-  headTitle?: string;
-  headName: string;
-  headPhotoUrl: string;
-  headBio: string;
-  headQuote?: string;
-  divisions: Division[];
+  opd: OPD;
   className?: string;
 }
 
 export default function GreetingSection({
-  opdName,
-  welcomeMessage = 'Selamat datang di website resmi kami.',
-  description = 'Kami berkomitmen untuk pemerintahan transparan dan efisien melalui transformasi digital.',
-  headTitle = 'Kepala Dinas',
-  headName,
-  headPhotoUrl,
-  headBio,
-  headQuote,
-  divisions,
+  welcomeMessage,
   className,
+  opd,
 }: GreetingSectionProps) {
   return (
     <section
@@ -48,68 +30,72 @@ export default function GreetingSection({
       aria-labelledby="greeting-heading"
     >
       {/* Header */}
-      <header className="container mx-auto mb-10 flex max-w-screen-xl flex-col gap-3 px-4 md:flex-row md:items-end md:justify-between">
+      <header className="container mx-auto mb-10 flex max-w-7xl flex-col gap-3 px-4 md:flex-row md:items-end md:justify-between">
         <div>
           <h1
             id="greeting-heading"
             className="text-primary text-xl leading-tight font-bold tracking-tight sm:text-4xl"
           >
             <span className="text-muted-foreground mb-1 block text-xs md:text-sm lg:text-base">
-              {welcomeMessage}
+              Selamat datang di website resmi
             </span>
-            {opdName}
+            {opd.name}
           </h1>
         </div>
 
-        <p className="text-muted-foreground max-w-xl text-xs leading-snug md:text-right md:text-sm">
-          {description}
-        </p>
+        {welcomeMessage && (
+          <p className="text-muted-foreground max-w-xl text-xs leading-snug md:text-right md:text-sm">
+            {welcomeMessage}
+          </p>
+        )}
       </header>
 
       {/* Main Grid */}
-      <div className="container mx-auto grid max-w-screen-xl grid-cols-1 gap-12 px-4 md:grid-cols-2">
+      <div className="container mx-auto grid max-w-7xl grid-cols-1 gap-12 px-4 md:grid-cols-2">
         {/* Head of OPD */}
         <article
           aria-labelledby="head-of-department"
           className="grid grid-cols-1 items-start gap-6 sm:grid-cols-2"
         >
-          <figure className="ring-border relative overflow-hidden rounded-xl shadow-xl ring-1">
-            <AspectRatio ratio={4 / 5}>
-              <Image
-                src={headPhotoUrl}
-                alt={`Foto ${headName}`}
-                fill
-                className="object-cover grayscale-[15%] transition duration-300 ease-in-out hover:scale-105 hover:grayscale-0"
-                sizes="(max-width: 768px) 100vw, 240px"
-              />
-            </AspectRatio>
-            <figcaption className="sr-only">{headName}</figcaption>
-          </figure>
+          {opd.head.photoUrl && (
+            <figure className="ring-border relative overflow-hidden rounded-xl shadow-xl ring-1">
+              <AspectRatio ratio={4 / 5}>
+                <Image
+                  src={opd.head.photoUrl}
+                  alt={`Foto ${opd.head.name}`}
+                  fill
+                  className="object-cover grayscale-[15%] transition duration-300 ease-in-out hover:scale-105 hover:grayscale-0"
+                  sizes="(max-width: 768px) 100vw, 240px"
+                />
+              </AspectRatio>
+              <figcaption className="sr-only">{opd.head.name}</figcaption>
+            </figure>
+          )}
 
           <div className="space-y-5">
             <header className="space-y-1">
               <span className="bg-primary/10 text-primary inline-block rounded px-2 py-1 text-[10px] font-medium tracking-wide uppercase sm:text-xs">
-                {headTitle}
+                {opd.head.title}
               </span>
               <h2
                 id="head-of-department"
                 className="text-primary text-lg leading-tight font-semibold sm:text-xl"
               >
-                {headName}
+                {opd.head.name}
               </h2>
             </header>
 
             <p className="text-muted-foreground text-sm leading-relaxed">
-              {headBio}
+              {opd.head.bio}
             </p>
 
-            {headQuote && (
+            {opd.head.quote && (
               <blockquote className="border-primary/30 bg-muted/30 text-muted-foreground flex items-start gap-2 rounded-md border-l-4 p-3 text-sm italic">
                 <Quote
                   className="text-primary size-4 shrink-0 rotate-180 md:size-5"
                   aria-hidden
                 />
-                {headQuote}
+                {opd.head.quote}
               </blockquote>
             )}
           </div>
@@ -133,13 +119,13 @@ export default function GreetingSection({
             </p>
           </header>
 
-          {divisions.length > 0 ? (
+          {opd.divisions && opd.divisions.length > 0 ? (
             <Accordion
               type="single"
               collapsible
               className="border-border divide-border w-full divide-y overflow-hidden rounded-xl border shadow-sm"
             >
-              {divisions.map((div, index) => (
+              {opd.divisions.map((div, index) => (
                 <AccordionItem key={index} value={`item-${index}`} asChild>
                   <article
                     className={cn(
@@ -159,7 +145,7 @@ export default function GreetingSection({
                           aria-hidden
                         />
                         <span className="group-hover:text-primary transition-all">
-                          {div.title}
+                          {div.name}
                         </span>
                       </span>
                     </AccordionTrigger>

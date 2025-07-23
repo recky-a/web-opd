@@ -1,8 +1,12 @@
 export interface News {
   id: string;
   title: string;
-  image: string;
-  createdAt: string;
+  excerpt: string;
+  imageUrl: string;
+  publishedAt: string;
+  slug: string;
+  isPopular?: boolean;
+  isFeatured?: boolean;
   category: string;
-  href: string;
+  tags?: string[];
 }

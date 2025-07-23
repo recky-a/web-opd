@@ -1,7 +1,9 @@
 import { ThemeProvider } from '@/components/theme-provider';
 import { generateMetadata } from '@/lib/metadata';
 
-import '@/styles/www-style.css';
+import '@/styles/globals.css';
+import { setDefaultOptions } from 'date-fns';
+import { id as localeID } from 'date-fns/locale';
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
 import Footer from './footer';
@@ -18,6 +20,8 @@ const inter = Inter({
 
 // Clean, essential metadata
 export const metadata: Metadata = generateMetadata();
+
+setDefaultOptions({ locale: localeID });
 
 export default function RootLayout({
   children,

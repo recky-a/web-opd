@@ -1,7 +1,7 @@
 'use client';
 
-import { BrandIcon } from '@/components/brand-icon';
 import LucideIcon, { IconName } from '@/components/lucide-icon';
+import { SocialLinks } from '@/components/social-links';
 import { buttonVariants } from '@/components/ui/button';
 import {
   Collapsible,
@@ -23,15 +23,13 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover';
 import { ScrollArea, ScrollBar } from '@/components/ui/scroll-area';
-import { Separator } from '@/components/ui/separator';
-import { navigation, siteConfig } from '@/lib/config';
+import { navigation } from '@/lib/config';
 import { cn } from '@/lib/utils';
 import { ChevronDown, ChevronUp, Menu, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
   ComponentPropsWithoutRef,
-  Fragment,
   JSX,
   memo,
   useEffect,
@@ -192,36 +190,6 @@ function NavigationList(): JSX.Element {
   );
 }
 
-function SocialLinks(): JSX.Element {
-  const socialEntries = Object.entries(siteConfig.social);
-
-  return (
-    <ul className="mb-10 flex flex-row flex-wrap items-center justify-center gap-x-3 gap-y-2">
-      {socialEntries.map((sosmed, index) => (
-        <Fragment key={sosmed[1].name}>
-          <li>
-            <Link
-              href={sosmed[1].url}
-              className="flex items-center justify-center gap-1.5 text-xs"
-              target="_blank"
-              rel="noopener noreferrer"
-            >
-              <BrandIcon
-                icon={socialIcons[sosmed[1].icon as keyof typeof socialIcons]}
-                className="size-3.5"
-              />
-              {sosmed[1].name}
-            </Link>
-          </li>
-          {index < socialEntries.length - 1 && (
-            <Separator orientation="vertical" className="h-4" />
-          )}
-        </Fragment>
-      ))}
-    </ul>
-  );
-}
-
 /**
  * @description Props for the Navbar component.
  * @property {string} [className] - Additional classes for the main Navbar container.
@@ -278,7 +246,17 @@ export default function Navbar({
         >
           <ScrollArea>
             <NavigationList />
-            <SocialLinks />
+
+            <SocialLinks
+              as="ul"
+              variant="filled"
+              iconSize="md"
+              showLabels={false}
+              orientation="horizontal"
+              spacing="tight"
+              ariaLabel="Media Sosial Resmi"
+              className="my-5 justify-center gap-x-3"
+            />
             <ScrollBar orientation="vertical" />
           </ScrollArea>
         </PopoverContent>
@@ -302,7 +280,6 @@ export default function Navbar({
                       : buttonVariants({ variant: 'ghost' })
                   }
                 >
-                  {/* <Icon className="size-5 flex-shrink-0" iconName={nav.icon} /> */}
                   {nav.name}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent>
@@ -334,7 +311,6 @@ export default function Navbar({
                     )}
                     href={nav.href}
                   >
-                    {/* <Icon className="size-5 shrink-0" iconName={nav.icon} /> */}
                     {nav.name}
                   </Link>
                 </NavigationMenuLink>
@@ -363,7 +339,7 @@ const ListItem = ({
         <Link
           href={href}
           className={cn(
-            'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none no-underline transition-colors outline-none select-none',
+            'hover:bg-accent hover:text-accent-foreground focus:bg-accent focus:text-accent-foreground block space-y-1 rounded-md p-3 leading-none capitalize no-underline transition-colors outline-none select-none',
             pathname === href
               ? 'bg-secondary text-secondary-foreground'
               : 'text-primary',
