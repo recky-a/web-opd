@@ -1,55 +1,30 @@
-const cspHeader = `
-    default-src 'self';
-    script-src 'self' 'unsafe-eval' 'unsafe-inline';
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' blob: data:;
-    font-src 'self';
-    object-src 'none';
-    base-uri 'self';
-    form-action 'self';
-    frame-ancestors 'none';
-    upgrade-insecure-requests;
-`;
 /** @type {import('next').NextConfig} */
 const nextConfig: import('next').NextConfig = {
   output: 'standalone',
-  experimental: {
-    reactCompiler: true,
-  },
 
   compress: true,
-
-  async headers() {
-    return [
+  // TODO: remove/modify these remote patterns later because will use production service/storage
+  images: {
+    remotePatterns: [
       {
-        // Apply to all routes
-        source: '/(.*)',
-        headers: [
-          {
-            key: 'X-Frame-Options',
-            value: 'DENY',
-          },
-          {
-            key: 'X-Content-Type-Options',
-            value: 'nosniff',
-          },
-          {
-            key: 'Referrer-Policy',
-            value: 'strict-origin-when-cross-origin',
-          },
-          {
-            key: 'Permissions-Policy',
-            value: 'camera=(), microphone=(), geolocation=()',
-          },
-          {
-            key: 'Content-Security-Policy',
-            value: cspHeader.replace(/\n/g, ''),
-          },
-        ],
+        protocol: 'https',
+        hostname: '**.unsplash.com',
       },
-    ];
+      {
+        protocol: 'https',
+        hostname: '**.pexels.com',
+      },
+      {
+        protocol: 'https',
+        hostname: '**.youtube.com',
+      },
+    ],
   },
+
   poweredByHeader: false,
+  eslint: {
+    ignoreDuringBuilds: true,
+  },
 };
 
 export default nextConfig;

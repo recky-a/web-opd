@@ -1,6 +1,16 @@
 import { IconName } from '@/components/lucide-icon';
 import { env } from '@/env';
 import { Author } from 'next/dist/lib/metadata/types/metadata-types';
+import { siFacebook, siInstagram, siX, siYoutube } from 'simple-icons';
+
+export const simpleIconsMap = {
+  facebook: siFacebook,
+  x: siX,
+  instagram: siInstagram,
+  youtube: siYoutube,
+};
+
+export type SocialKey = keyof typeof simpleIconsMap;
 
 export const siteConfig = {
   name: env.NEXT_PUBLIC_SITE_NAME,
@@ -15,13 +25,16 @@ export const siteConfig = {
   province: 'Kepulauan Bangka Belitung',
   country: 'Indonesia',
   timezone: 'Asia/Jakarta',
-
-  compliance: {
-    wcagLevel: 'AA',
-    lastAuditDate: '2024-12-01',
-    accessibilityContact: 'aksesibilitas@dinkominfotik.bangka.go.id',
-    privacyOfficer: 'privacy@dinkominfotik.bangka.go.id',
+  opdHead: {
+    title: 'Kepala Dinas',
+    name: 'M. Fadillah, S.T., M.M.',
+    photoUrl: '/hero-1.jpg',
+    bio: 'Sebagai Kepala Dinas Kominfo Kabupaten Bangka, saya berkomitmen untuk memperkuat infrastruktur TIK, mengembangkan sistem informasi publik yang terbuka, serta mendukung inovasi digital demi kemajuan pelayanan publik dan keterbukaan informasi.',
+    quote:
+      'Infrastruktur digital yang kokoh adalah fondasi dari pelayanan publik yang cepat, transparan, dan akuntabel.',
   },
+  mapsEmbedUrl:
+    'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d63795.00921486427!2d106.08263507443873!3d-1.854802399999993!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e22c2f80f7fcf23%3A0x5030d43c3db63f0!2sKabupaten%20Bangka%2C%20Kepulauan%20Bangka%20Belitung!5e0!3m2!1sid!2sid!4v1721376000000!5m2!1sid!2sid',
 
   contact: {
     phone: '+62-717-421234',
@@ -40,29 +53,27 @@ export const siteConfig = {
       weekend: 'Tutup',
     },
   },
+  socials: [
+    { name: 'facebook', url: 'https://facebook.com/pemkabbangka' },
+    { name: 'x', url: 'https://x.com/pemkabbangka' },
+    { name: 'instagram', url: 'https://instagram.com/pemkabbangka' },
+    { name: 'youtube', url: 'http://googleusercontent.com/youtube.com/4' },
+  ] as const,
+  // For display purposes
+  openingHours: [
+    { day: 'Senin - Kamis', time: '07:30 - 16:00 WIB' },
+    { day: 'Jumat', time: '07:30 - 16:30 WIB' },
+    { day: 'Sabtu & Minggu', time: 'Tutup' },
+  ],
 
-  social: {
-    facebook: {
-      name: 'Facebook',
-      url: 'https://facebook.com/dinkominfotikbangka',
-      icon: 'facebook',
-    },
-    twitter: {
-      name: 'Twitter',
-      url: 'https://twitter.com/dinkominfotikbangka',
-      icon: 'x',
-    },
-    instagram: {
-      name: 'Instagram',
-      url: 'https://instagram.com/dinkominfotikbangka',
-      icon: 'instagram',
-    },
-    youtube: {
-      name: 'YouTube',
-      url: 'https://youtube.com/@dinkominfotikbangka',
-      icon: 'youtube',
-    },
-  },
+  // For the dynamic status logic (Day index: 0=Sun, 1=Mon, etc.)
+  operationalHours: [
+    { dayIndex: 1, open: '07:30', close: '16:00' }, // Monday
+    { dayIndex: 2, open: '07:30', close: '16:00' }, // Tuesday
+    { dayIndex: 3, open: '07:30', close: '16:00' }, // Wednesday
+    { dayIndex: 4, open: '07:30', close: '16:00' }, // Thursday
+    { dayIndex: 5, open: '07:30', close: '16:30' }, // Friday
+  ],
 
   keywords: [
     'Dinas Komunikasi Bangka',
@@ -88,21 +99,6 @@ export const siteConfig = {
     'Data Analytics',
     'Digitalisasi',
   ],
-
-  monitoring: {
-    analyticsId: process.env.NEXT_PUBLIC_GA_ID,
-    hotjarId: process.env.NEXT_PUBLIC_HOTJAR_ID,
-    sentryDsn: process.env.NEXT_PUBLIC_SENTRY_DSN,
-  },
-
-  features: {
-    darkMode: true,
-    multiLanguage: false,
-    chatBot: process.env.NEXT_PUBLIC_ENABLE_CHATBOT === 'true',
-    onlineServices: true,
-    guestBook: true,
-    survey: true,
-  },
 };
 
 export const siteAuthors: Author[] = [
@@ -149,11 +145,6 @@ export const navigation = {
       icon: 'Building',
       children: [
         {
-          name: 'Sambutan Kepala Dinas',
-          description: 'Sambutan dan Pesan Kepala Dinas',
-          href: '/profil/sambutan-kepala-dinas',
-        },
-        {
           name: 'Struktur Organisasi',
           description: 'Bagan dan Susunan Kepengurusan',
           href: '/profil/struktur-organisasi',
@@ -164,13 +155,8 @@ export const navigation = {
           href: '/profil/sejarah',
         },
         {
-          name: 'Visi dan Misi',
-          description: 'Visi, Misi, dan Tujuan Dinas',
-          href: '/profil/visi-dan-misi',
-        },
-        {
           name: 'tugas pokok dan fungsi',
-          description: '	Tugas, Pokok, dan Fungsi Dinas',
+          description: 'Tugas, Pokok, dan Fungsi Dinas',
           href: '/profil/tugas-pokok-dan-fungsi',
         },
         {
@@ -241,11 +227,6 @@ export const navigation = {
         name: 'Struktur Organisasi',
         href: '/profil/struktur-organisasi',
         description: 'Informasi Lengkap Struktur Organisasi',
-      },
-      {
-        name: 'Visi & Misi',
-        href: '/profil/visi-dan-misi',
-        description: 'Visi dan Misi Sebagai Pedoman Kerja Dinas',
       },
       {
         name: 'Tugas & Fungsi',

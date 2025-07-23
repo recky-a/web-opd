@@ -1,55 +1,12 @@
-'use client';
-
-import { usePathname } from 'next/navigation';
-import { useEffect, useRef, useState } from 'react';
-
 import { GlobalSearch } from '@/components/global-search';
 import { ThemeToggle } from '@/components/theme-toggle';
 import Navbar from './navbar';
 import WebLogo from './web-logo';
 
 export default function Header() {
-  const pathname = usePathname();
-  const isHomepage = pathname === '/';
-  const [isScrolledPastHero, setIsScrolledPastHero] = useState(false);
-  const headerRef = useRef<HTMLElement>(null);
-
-  useEffect(() => {
-    if (!isHomepage) return;
-
-    const handleScroll = () => {
-      const header = headerRef.current;
-      const hero = document.querySelector('[aria-labelledby="hero-heading"]');
-
-      if (!header || !hero) return;
-
-      const headerBottom =
-        header.getBoundingClientRect().bottom + window.scrollY;
-      const heroBottom = hero.getBoundingClientRect().bottom + window.scrollY;
-
-      setIsScrolledPastHero(headerBottom > heroBottom);
-    };
-
-    handleScroll(); // initial check
-    window.addEventListener('scroll', handleScroll);
-    window.addEventListener('resize', handleScroll);
-
-    return () => {
-      window.removeEventListener('scroll', handleScroll);
-      window.removeEventListener('resize', handleScroll);
-    };
-  }, [isHomepage]);
-
-  const headerClass = isHomepage
-    ? isScrolledPastHero
-      ? 'bg-primary '
-      : 'bg-transparent  hover:bg-primary/10 backdrop-blur-xs'
-    : 'bg-primary ';
-
   return (
     <header
-      ref={headerRef}
-      className={`fixed z-50 flex w-full items-center-safe gap-2 px-2.5 py-3 transition-all duration-300 max-[350px]:gap-1 max-[350px]:px-1.5 md:flex-wrap ${headerClass}`}
+      className={`bg-primary flex w-full max-w-screen items-center-safe gap-2 px-2.5 py-3 max-[350px]:gap-1 max-[350px]:px-1.5 md:flex-wrap`}
     >
       <WebLogo
         fullNameClassName="text-tiny"
